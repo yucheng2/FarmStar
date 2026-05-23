@@ -13,7 +13,9 @@ const keyword = ref('')
 const selectedStatus = ref<FieldStatus | ''>('')
 const activeView = ref<'list' | 'map'>('list')
 const selectedCaretaker = ref<Caretaker | null>(null)
+const selectedField = ref<Field | null>(null)
 const modalOpen = ref(false)
+const fieldDetailOpen = ref(false)
 
 async function loadFields() {
   loading.value = true
@@ -41,7 +43,12 @@ function adoptField(field: Field) {
 }
 
 function showFieldDetails(field: Field) {
-  uni.showToast({ title: `${field.name}详情即将开放`, icon: 'none' })
+  selectedField.value = field
+  fieldDetailOpen.value = true
+}
+
+function closeFieldDetails() {
+  fieldDetailOpen.value = false
 }
 
 async function openCaretaker(caretakerSummary: CaretakerSummary | undefined) {
@@ -110,6 +117,24 @@ onMounted(() => {
         @details="showFieldDetails"
         @caretaker="openCaretaker"
       />
+    </view>
+
+    <view v-if="fieldDetailOpen && selectedField" class="field-detail-mask" data-test="field-detail-modal">
+      <view class="field-detail-panel">
+        <view class="field-detail-header">
+          <text class="field-detail-title">{{ selectedField.name }}</text>
+          <button data-test="close-field-detail" @click="closeFieldDetails">关闭</button>
+        </view>
+        <text>田地编号：{{ selectedField.code }}</text>
+        <text>面积：{{ selectedField.areaSquareMeters }}㎡</text>
+        <text>状态：{{ selectedField.status === 'adopted' ? '已认养' : selectedField.status }}</text>
+        <text v-if="selectedField.crop">作物：{{ selectedField.crop.name }} · 生长进度 {{ selectedField.crop.progressPercent }}%</text>
+        <text v-if="selectedField.expectedHarvestDate">预计收获：{{ selectedField.expectedHarvestDate }}</text>
+        <text v-if="selectedField.caretaker">管护员：{{ selectedField.caretaker.name }} · {{ selectedField.caretaker.rating.toFixed(1) }} ★</text>
+        <view v-if="selectedField.crop" class="detail-progress-track">
+          <view class="detail-progress-fill" :style="{ width: `${selectedField.crop.progressPercent}%` }" />
+        </view>
+      </view>
     </view>
 
     <CaretakerDetailModal
@@ -207,5 +232,63 @@ onMounted(() => {
   margin: 40px 16px;
   color: #6b766b;
   text-align: center;
+}
+
+.field-detail-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.36);
+  box-sizing: border-box;
+}
+
+.field-detail-panel {
+  display: flex;
+  width: 100%;
+  max-width: 420px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #2d3a2d;
+  box-sizing: border-box;
+}
+
+.field-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field-detail-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.field-detail-header button {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #eef6ea;
+  color: #4caf50;
+}
+
+.detail-progress-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e6eee3;
+}
+
+.detail-progress-fill {
+  height: 100%;
+  background: #4caf50;
 }
 </style>

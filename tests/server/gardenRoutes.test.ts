@@ -114,6 +114,42 @@ describe('garden routes', () => {
     expect(response.json()).toMatchObject({ message: '该田地已不可认养' })
   })
 
+  it('marks field as adopted after creating adoption', async () => {
+    const app = createApp()
+    const createResponse = await app.inject({
+      method: 'POST',
+      url: '/api/adoptions',
+      payload: { fieldId: 'field-001', caretakerId: 'caretaker-zhang' }
+    })
+    const fieldResponse = await app.inject({ method: 'GET', url: '/api/fields/field-001' })
+
+    expect(createResponse.statusCode).toBe(200)
+    expect(fieldResponse.statusCode).toBe(200)
+    expect(fieldResponse.json()).toMatchObject({
+      id: 'field-001',
+      status: 'adopted',
+      caretaker: { id: 'caretaker-zhang', name: '张叔' }
+    })
+  })
+
+  it('rejects duplicate adoption for the same field', async () => {
+    const app = createApp()
+    const firstResponse = await app.inject({
+      method: 'POST',
+      url: '/api/adoptions',
+      payload: { fieldId: 'field-001', caretakerId: 'caretaker-zhang' }
+    })
+    const secondResponse = await app.inject({
+      method: 'POST',
+      url: '/api/adoptions',
+      payload: { fieldId: 'field-001', caretakerId: 'caretaker-li' }
+    })
+
+    expect(firstResponse.statusCode).toBe(200)
+    expect(secondResponse.statusCode).toBe(400)
+    expect(secondResponse.json()).toMatchObject({ message: '该田地已不可认养' })
+  })
+
   it('returns not found errors', async () => {
     const app = createApp()
     const response = await app.inject({ method: 'GET', url: '/api/fields/missing-field' })

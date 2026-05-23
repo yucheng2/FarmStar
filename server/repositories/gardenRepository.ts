@@ -50,6 +50,11 @@ export function createGardenRepository(options: GardenRepositoryOptions = {}) {
   const persistedAdoptions = options.adoptionStoragePath ? readAdoptions(options.adoptionStoragePath) : []
   const adoptionStore = new Map<string, Adoption>(persistedAdoptions.map((adoption) => [adoption.id, adoption]))
 
+  persistedAdoptions.forEach((adoption) => {
+    const field = fields.find((item) => item.id === adoption.fieldId)
+    if (field && field.status === 'idle') field.status = 'adopted'
+  })
+
   function persistAdoptions() {
     if (options.adoptionStoragePath) writeAdoptions(options.adoptionStoragePath, [...adoptionStore.values()])
   }
@@ -126,6 +131,16 @@ export function createGardenRepository(options: GardenRepositoryOptions = {}) {
       paymentOrderId,
       createdAt: '2026-05-23T10:00:00+08:00'
     })
+    field.status = 'adopted'
+    field.caretaker = {
+      id: caretaker.id,
+      name: caretaker.name,
+      rating: caretaker.rating,
+      avatarUrl: caretaker.avatarUrl,
+      distanceKm: caretaker.distanceKm,
+      experienceYears: caretaker.experienceYears,
+      status: caretaker.status
+    }
     persistAdoptions()
 
     return {
