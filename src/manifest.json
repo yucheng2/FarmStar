@@ -1,0 +1,14 @@
+{
+  "name": "FarmStar",
+  "appid": "__UNI__FARMSTAR",
+  "description": "FarmStar garden MVP",
+  "versionName": "0.1.0",
+  "versionCode": "1",
+  "transformPx": false,
+  "app-plus": {},
+  "mp-weixin": {},
+  "mp-alipay": {},
+  "h5": {
+    "title": "FarmStar"
+  }
+}

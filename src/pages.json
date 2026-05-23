@@ -1,0 +1,28 @@
+{
+  "pages": [
+    {
+      "path": "pages/garden/index",
+      "style": {
+        "navigationBarTitleText": "我的田园"
+      }
+    },
+    {
+      "path": "pages/caretaker-select/index",
+      "style": {
+        "navigationBarTitleText": "选择管护员"
+      }
+    },
+    {
+      "path": "pages/payment/confirm",
+      "style": {
+        "navigationBarTitleText": "确认认养"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "FarmStar",
+    "navigationBarBackgroundColor": "#F6FBF3",
+    "backgroundColor": "#F6FBF3"
+  }
+}
