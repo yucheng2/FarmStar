@@ -28,12 +28,18 @@ describe('PaymentConfirmPage', () => {
     await flushPromises()
 
     expect(getAdoptionById).toHaveBeenCalledWith('adoption-field-001-caretaker-zhang')
-    expect(wrapper.text()).toContain('认养待支付')
+    expect(wrapper.text()).toContain('确认认养')
     expect(wrapper.text()).toContain('支付单号：payment-field-001-caretaker-zhang')
 
     await wrapper.get('[data-test="pay-button"]').trigger('click')
 
-    expect(uni.showToast).toHaveBeenCalledWith({ title: '支付功能暂未开放', icon: 'none' })
+    expect(wrapper.text()).toContain('认养申请已提交')
+    expect(wrapper.text()).toContain('返回田园')
+    expect(uni.showToast).toHaveBeenCalledWith({ title: '认养申请已提交', icon: 'none' })
+
+    await wrapper.get('[data-test="return-garden"]').trigger('click')
+
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/garden/index' })
   })
 
   it('shows not found state for missing adoption', async () => {

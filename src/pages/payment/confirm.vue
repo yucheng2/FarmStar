@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<{
 
 const adoption = ref<Adoption | undefined>()
 const loading = ref(false)
+const submitted = ref(false)
 
 async function loadAdoption() {
   loading.value = true
@@ -24,8 +25,13 @@ async function loadAdoption() {
   }
 }
 
-function pay() {
-  uni.showToast({ title: '支付功能暂未开放', icon: 'none' })
+function skipPayment() {
+  submitted.value = true
+  uni.showToast({ title: '认养申请已提交', icon: 'none' })
+}
+
+function returnToGarden() {
+  uni.navigateTo({ url: '/pages/garden/index' })
 }
 
 onMounted(() => {
@@ -38,13 +44,20 @@ onMounted(() => {
     <view class="card" v-if="loading">
       <text class="title">加载中...</text>
     </view>
+    <view class="card" v-else-if="adoption && submitted">
+      <text class="success-mark">✓</text>
+      <text class="title">认养申请已提交</text>
+      <text>认养编号：{{ adoption.id }}</text>
+      <text>我们已收到你的认养申请，管护员会继续为你照看田地。</text>
+      <button data-test="return-garden" @click="returnToGarden">返回田园</button>
+    </view>
     <view class="card" v-else-if="adoption">
-      <text class="title">认养待支付</text>
+      <text class="title">确认认养</text>
       <text>认养编号：{{ adoption.id }}</text>
       <text>田地编号：{{ adoption.fieldId }}</text>
       <text>管护员编号：{{ adoption.caretakerId }}</text>
       <text>支付单号：{{ adoption.paymentOrderId }}</text>
-      <button data-test="pay-button" @click="pay">去支付</button>
+      <button data-test="pay-button" @click="skipPayment">提交认养申请</button>
     </view>
     <view class="card" v-else>
       <text class="title">未找到认养记录</text>
@@ -74,6 +87,18 @@ onMounted(() => {
 .title {
   font-size: 18px;
   font-weight: 700;
+}
+
+.success-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #4caf50;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 48px;
+  text-align: center;
 }
 
 button {
