@@ -17,6 +17,12 @@
       "style": {
         "navigationBarTitleText": "确认认养"
       }
+    },
+    {
+      "path": "pages/adoption/detail",
+      "style": {
+        "navigationBarTitleText": "认养详情"
+      }
     }
   ],
   "globalStyle": {

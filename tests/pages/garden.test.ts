@@ -77,7 +77,18 @@ describe('GardenPage', () => {
     expect(wrapper.get('[data-test="field-detail-modal"]').text()).toContain('我的小菜园')
     expect(wrapper.get('[data-test="field-detail-modal"]').text()).toContain('状态：已认养')
     expect(wrapper.get('[data-test="field-detail-modal"]').text()).toContain('管护员')
+    expect(wrapper.get('[data-test="field-detail-modal"]').text()).toContain('查看认养状态')
     expect(uni.showToast).not.toHaveBeenCalled()
+  })
+
+  it('opens adoption detail from adopted field detail', async () => {
+    const wrapper = mount(GardenPage)
+    await flushPromises()
+
+    await wrapper.findAll('[data-test="field-action"]')[1].trigger('click')
+    await wrapper.get('[data-test="view-field-adoption"]').trigger('click')
+
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/adoption/detail?adoption_id=adoption-field-002-caretaker-li' })
   })
 
   it('closes adopted field detail', async () => {

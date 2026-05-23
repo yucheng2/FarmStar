@@ -99,6 +99,7 @@ export const fields: Field[] = [
     name: '我的小菜园',
     areaSquareMeters: 20,
     status: 'adopted',
+    adoptionId: 'adoption-field-002-caretaker-li',
     crop: {
       id: 'crop-tomato',
       name: '西红柿',

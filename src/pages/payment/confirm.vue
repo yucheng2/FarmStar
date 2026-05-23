@@ -1,23 +1,24 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { getAdoptionById } from '../../services/gardenApi'
 import type { Adoption } from '../../types/garden'
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   adoptionId?: string
-}>(), {
-  adoptionId: 'adoption-field-001-caretaker-zhang'
-})
+  adoption_id?: string
+}>()
 
 const adoption = ref<Adoption | undefined>()
 const loading = ref(false)
 const submitted = ref(false)
 
+const resolvedAdoptionId = computed(() => props.adoptionId ?? props.adoption_id ?? 'adoption-field-001-caretaker-zhang')
+
 async function loadAdoption() {
   loading.value = true
 
   try {
-    adoption.value = await getAdoptionById(props.adoptionId)
+    adoption.value = await getAdoptionById(resolvedAdoptionId.value)
   } catch {
     adoption.value = undefined
   } finally {
@@ -28,6 +29,11 @@ async function loadAdoption() {
 function skipPayment() {
   submitted.value = true
   uni.showToast({ title: '认养申请已提交', icon: 'none' })
+}
+
+function viewAdoptionDetail() {
+  if (!adoption.value) return
+  uni.navigateTo({ url: `/pages/adoption/detail?adoption_id=${adoption.value.id}` })
 }
 
 function returnToGarden() {
@@ -49,7 +55,8 @@ onMounted(() => {
       <text class="title">认养申请已提交</text>
       <text>认养编号：{{ adoption.id }}</text>
       <text>我们已收到你的认养申请，管护员会继续为你照看田地。</text>
-      <button data-test="return-garden" @click="returnToGarden">返回田园</button>
+      <button data-test="view-adoption-detail" @click="viewAdoptionDetail">查看认养详情</button>
+      <button data-test="return-garden" class="secondary-button" @click="returnToGarden">返回田园</button>
     </view>
     <view class="card" v-else-if="adoption">
       <text class="title">确认认养</text>
@@ -110,5 +117,11 @@ button {
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
+}
+
+.secondary-button {
+  margin-top: 0;
+  background: #eef6ea;
+  color: #4caf50;
 }
 </style>

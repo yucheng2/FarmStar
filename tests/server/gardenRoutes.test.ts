@@ -79,6 +79,7 @@ describe('garden routes', () => {
 
     const secondApp = createApp(createGardenRepository({ adoptionStoragePath }))
     const getResponse = await secondApp.inject({ method: 'GET', url: '/api/adoptions/adoption-field-001-caretaker-zhang' })
+    const fieldResponse = await secondApp.inject({ method: 'GET', url: '/api/fields/field-001' })
 
     expect(getResponse.statusCode).toBe(200)
     expect(getResponse.json()).toMatchObject({
@@ -86,6 +87,11 @@ describe('garden routes', () => {
       fieldId: 'field-001',
       caretakerId: 'caretaker-zhang',
       paymentOrderId: 'payment-field-001-caretaker-zhang'
+    })
+    expect(fieldResponse.json()).toMatchObject({
+      id: 'field-001',
+      status: 'adopted',
+      adoptionId: 'adoption-field-001-caretaker-zhang'
     })
   })
 
@@ -100,6 +106,25 @@ describe('garden routes', () => {
 
     expect(response.statusCode).toBe(200)
     await expect(access(adoptionStoragePath)).resolves.toBeUndefined()
+  })
+
+  it('returns seed adopted field and adoption record', async () => {
+    const app = createApp()
+    const fieldResponse = await app.inject({ method: 'GET', url: '/api/fields/field-002' })
+    const adoptionResponse = await app.inject({ method: 'GET', url: '/api/adoptions/adoption-field-002-caretaker-li' })
+
+    expect(fieldResponse.statusCode).toBe(200)
+    expect(fieldResponse.json()).toMatchObject({
+      id: 'field-002',
+      status: 'adopted',
+      adoptionId: 'adoption-field-002-caretaker-li'
+    })
+    expect(adoptionResponse.statusCode).toBe(200)
+    expect(adoptionResponse.json()).toMatchObject({
+      id: 'adoption-field-002-caretaker-li',
+      fieldId: 'field-002',
+      caretakerId: 'caretaker-li'
+    })
   })
 
   it('rejects adoption when field is not idle', async () => {
@@ -128,6 +153,7 @@ describe('garden routes', () => {
     expect(fieldResponse.json()).toMatchObject({
       id: 'field-001',
       status: 'adopted',
+      adoptionId: 'adoption-field-001-caretaker-zhang',
       caretaker: { id: 'caretaker-zhang', name: '张叔' }
     })
   })

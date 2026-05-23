@@ -51,6 +51,11 @@ function closeFieldDetails() {
   fieldDetailOpen.value = false
 }
 
+function viewFieldAdoption() {
+  if (!selectedField.value?.adoptionId) return
+  uni.navigateTo({ url: `/pages/adoption/detail?adoption_id=${selectedField.value.adoptionId}` })
+}
+
 async function openCaretaker(caretakerSummary: CaretakerSummary | undefined) {
   if (!caretakerSummary) return
   trackEvent({ event: 'caretaker_click', userId: 'user-demo', caretakerId: caretakerSummary.id })
@@ -134,6 +139,9 @@ onMounted(() => {
         <view v-if="selectedField.crop" class="detail-progress-track">
           <view class="detail-progress-fill" :style="{ width: `${selectedField.crop.progressPercent}%` }" />
         </view>
+        <button v-if="selectedField.adoptionId" data-test="view-field-adoption" class="field-adoption-button" @click="viewFieldAdoption">
+          查看认养状态
+        </button>
       </view>
     </view>
 
@@ -278,6 +286,15 @@ onMounted(() => {
   border-radius: 999px;
   background: #eef6ea;
   color: #4caf50;
+}
+
+.field-adoption-button {
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: #4caf50;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .detail-progress-track {

@@ -27,6 +27,7 @@ export type Field = {
   name: string
   areaSquareMeters: number
   status: FieldStatus
+  adoptionId?: string
   crop?: Crop
   expectedHarvestDate?: string
   caretaker?: CaretakerSummary

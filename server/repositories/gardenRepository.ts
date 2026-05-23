@@ -44,15 +44,34 @@ function isInExperienceRange(years: number, range: ExperienceRange) {
   return years >= 1 && years <= 3
 }
 
+function createSeedAdoptions(fields: Field[]): Adoption[] {
+  return fields
+    .filter((field) => field.status === 'adopted' && field.adoptionId && field.caretaker)
+    .map((field) => ({
+      id: field.adoptionId as string,
+      userId: 'user-demo',
+      fieldId: field.id,
+      caretakerId: field.caretaker?.id as string,
+      status: 'pending_payment',
+      paymentOrderId: `payment-${field.id}-${field.caretaker?.id}`,
+      createdAt: '2026-05-23T10:00:00+08:00'
+    }))
+}
+
 export function createGardenRepository(options: GardenRepositoryOptions = {}) {
   const fields = seedFields.map((field) => ({ ...field }))
   const caretakers = seedCaretakers.map((caretaker) => ({ ...caretaker }))
   const persistedAdoptions = options.adoptionStoragePath ? readAdoptions(options.adoptionStoragePath) : []
-  const adoptionStore = new Map<string, Adoption>(persistedAdoptions.map((adoption) => [adoption.id, adoption]))
+  const adoptionStore = new Map<string, Adoption>(
+    [...createSeedAdoptions(fields), ...persistedAdoptions].map((adoption) => [adoption.id, adoption])
+  )
 
   persistedAdoptions.forEach((adoption) => {
     const field = fields.find((item) => item.id === adoption.fieldId)
-    if (field && field.status === 'idle') field.status = 'adopted'
+    if (field) {
+      field.status = 'adopted'
+      field.adoptionId = adoption.id
+    }
   })
 
   function persistAdoptions() {
@@ -132,6 +151,7 @@ export function createGardenRepository(options: GardenRepositoryOptions = {}) {
       createdAt: '2026-05-23T10:00:00+08:00'
     })
     field.status = 'adopted'
+    field.adoptionId = adoptionId
     field.caretaker = {
       id: caretaker.id,
       name: caretaker.name,
