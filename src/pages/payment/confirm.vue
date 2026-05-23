@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { getStoredAdoption } from '../../services/gardenApi'
+import { onMounted, ref } from 'vue'
+import { getAdoptionById } from '../../services/gardenApi'
 import type { Adoption } from '../../types/garden'
 
 const props = withDefaults(defineProps<{
@@ -9,16 +9,36 @@ const props = withDefaults(defineProps<{
   adoptionId: 'adoption-field-001-caretaker-zhang'
 })
 
-const adoption = ref<Adoption | undefined>(getStoredAdoption(props.adoptionId))
+const adoption = ref<Adoption | undefined>()
+const loading = ref(false)
+
+async function loadAdoption() {
+  loading.value = true
+
+  try {
+    adoption.value = await getAdoptionById(props.adoptionId)
+  } catch {
+    adoption.value = undefined
+  } finally {
+    loading.value = false
+  }
+}
 
 function pay() {
   uni.showToast({ title: '支付功能暂未开放', icon: 'none' })
 }
+
+onMounted(() => {
+  void loadAdoption()
+})
 </script>
 
 <template>
   <view class="page">
-    <view class="card" v-if="adoption">
+    <view class="card" v-if="loading">
+      <text class="title">加载中...</text>
+    </view>
+    <view class="card" v-else-if="adoption">
       <text class="title">认养待支付</text>
       <text>认养编号：{{ adoption.id }}</text>
       <text>田地编号：{{ adoption.fieldId }}</text>

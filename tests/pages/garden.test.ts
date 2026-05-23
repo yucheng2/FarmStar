@@ -1,14 +1,31 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import GardenPage from '../../src/pages/garden/index.vue'
+import { fields } from '../../src/mocks/gardenData'
 import { clearAnalyticsEvents, getAnalyticsEvents } from '../../src/services/analytics'
+import { getCaretakerById, getFields } from '../../src/services/gardenApi'
 
+vi.mock('../../src/services/gardenApi', () => ({
+  getFields: vi.fn(),
+  getCaretakerById: vi.fn()
+}))
 
 describe('GardenPage', () => {
   beforeEach(() => {
     clearAnalyticsEvents()
     vi.mocked(uni.navigateTo).mockClear()
     vi.mocked(uni.showToast).mockClear()
+    vi.mocked(getFields).mockReset()
+    vi.mocked(getCaretakerById).mockReset()
+    vi.mocked(getFields).mockImplementation(async (filters = {}) => ({
+      items: fields.filter((field) => {
+        if (filters.status && field.status !== filters.status) return false
+        if (filters.keyword && !field.name.includes(filters.keyword) && !field.code.includes(filters.keyword)) return false
+        return true
+      }),
+      pagination: {}
+    }))
+    vi.mocked(getCaretakerById).mockResolvedValue(fields[0].caretaker as never)
   })
 
   it('loads fields and tracks page view', async () => {

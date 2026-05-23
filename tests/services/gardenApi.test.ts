@@ -1,54 +1,109 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   createAdoption,
+  getAdoptionById,
   getCaretakerById,
   getCaretakers,
   getFields,
-  getRecommendedCaretakers,
-  getStoredAdoption
+  getRecommendedCaretakers
 } from '../../src/services/gardenApi'
 
+const fetchMock = vi.fn()
 
 describe('gardenApi', () => {
-  it('filters fields by status and keyword', async () => {
+  beforeEach(() => {
+    fetchMock.mockReset()
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  it('requests fields with status and keyword query', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ code: '田地001', status: 'idle' }], pagination: {} }) })
+
     const result = await getFields({ status: 'idle', keyword: '田地001' })
 
-    expect(result.items).toHaveLength(1)
-    expect(result.items[0].code).toBe('田地001')
-    expect(result.items[0].status).toBe('idle')
+    expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/fields?status=idle&keyword=%E7%94%B0%E5%9C%B0001', {
+      method: 'GET',
+      headers: undefined,
+      body: undefined
+    })
+    expect(result.items[0]).toMatchObject({ code: '田地001', status: 'idle' })
   })
 
-  it('returns recommended caretakers within three kilometers sorted by rating, experience, positive rate, and distance', async () => {
+  it('requests recommended caretakers', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: 'caretaker-zhang' }], pagination: {} }) })
+
     const result = await getRecommendedCaretakers('field-001')
 
-    expect(result.items.map((caretaker) => caretaker.id)).toEqual(['caretaker-zhang', 'caretaker-li', 'caretaker-wang'])
-    expect(result.items.every((caretaker) => caretaker.distanceKm !== undefined && caretaker.distanceKm <= 3)).toBe(true)
+    expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/fields/field-001/recommended-caretakers', {
+      method: 'GET',
+      headers: undefined,
+      body: undefined
+    })
+    expect(result.items.map((caretaker) => caretaker.id)).toEqual(['caretaker-zhang'])
   })
 
-  it('filters caretakers by rating, experience, and specialty', async () => {
-    const result = await getCaretakers({ ratingMin: 4.5, experienceRange: '5_plus', specialty: 'vegetable' })
+  it('requests caretakers with filters', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: 'caretaker-li' }], pagination: {} }) })
 
-    expect(result.items.map((caretaker) => caretaker.id)).toEqual(['caretaker-zhang', 'caretaker-li'])
+    await getCaretakers({ ratingMin: 4.5, experienceRange: '5_plus', specialty: 'vegetable' })
+
+    expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/caretakers?ratingMin=4.5&experienceRange=5_plus&specialty=vegetable', {
+      method: 'GET',
+      headers: undefined,
+      body: undefined
+    })
   })
 
-  it('returns caretaker details by id', async () => {
+  it('requests caretaker details by id', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'caretaker-zhang', name: '张叔' }) })
+
     const caretaker = await getCaretakerById('caretaker-zhang')
 
+    expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/caretakers/caretaker-zhang', {
+      method: 'GET',
+      headers: undefined,
+      body: undefined
+    })
     expect(caretaker.name).toBe('张叔')
-    expect(caretaker.realPhotoUrl).toBe('/static/caretakers/zhang-real.webp')
   })
 
-  it('creates a pending payment adoption and stores it for payment confirmation', async () => {
+  it('posts adoption creation', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        adoptionId: 'adoption-field-001-caretaker-zhang',
+        status: 'pending_payment',
+        paymentOrderId: 'payment-field-001-caretaker-zhang',
+        nextUrl: '/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang'
+      })
+    })
+
     const adoption = await createAdoption({ fieldId: 'field-001', caretakerId: 'caretaker-zhang' })
-    const stored = getStoredAdoption(adoption.adoptionId)
 
-    expect(adoption.status).toBe('pending_payment')
+    expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/adoptions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fieldId: 'field-001', caretakerId: 'caretaker-zhang' })
+    })
     expect(adoption.nextUrl).toBe('/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang')
-    expect(stored?.fieldId).toBe('field-001')
-    expect(stored?.caretakerId).toBe('caretaker-zhang')
   })
 
-  it('rejects adoption creation when field is not idle', async () => {
+  it('requests adoption by id', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'adoption-field-001-caretaker-zhang' }) })
+
+    const adoption = await getAdoptionById('adoption-field-001-caretaker-zhang')
+
+    expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/adoptions/adoption-field-001-caretaker-zhang', {
+      method: 'GET',
+      headers: undefined,
+      body: undefined
+    })
+    expect(adoption.id).toBe('adoption-field-001-caretaker-zhang')
+  })
+
+  it('throws backend error message', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, json: async () => ({ message: '该田地已不可认养' }) })
+
     await expect(createAdoption({ fieldId: 'field-002', caretakerId: 'caretaker-zhang' })).rejects.toThrow('该田地已不可认养')
   })
 })

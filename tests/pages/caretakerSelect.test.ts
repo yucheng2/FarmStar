@@ -1,14 +1,32 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import CaretakerSelectPage from '../../src/pages/caretaker-select/index.vue'
+import { caretakers } from '../../src/mocks/gardenData'
 import { clearAnalyticsEvents, getAnalyticsEvents } from '../../src/services/analytics'
+import { createAdoption, getCaretakers, getRecommendedCaretakers } from '../../src/services/gardenApi'
 
+vi.mock('../../src/services/gardenApi', () => ({
+  createAdoption: vi.fn(),
+  getCaretakers: vi.fn(),
+  getRecommendedCaretakers: vi.fn()
+}))
 
 describe('CaretakerSelectPage', () => {
   beforeEach(() => {
     clearAnalyticsEvents()
     vi.mocked(uni.navigateTo).mockClear()
     vi.mocked(uni.showToast).mockClear()
+    vi.mocked(createAdoption).mockReset()
+    vi.mocked(getCaretakers).mockReset()
+    vi.mocked(getRecommendedCaretakers).mockReset()
+    vi.mocked(getRecommendedCaretakers).mockResolvedValue({ items: caretakers.slice(0, 3), pagination: {} })
+    vi.mocked(getCaretakers).mockResolvedValue({ items: caretakers, pagination: {} })
+    vi.mocked(createAdoption).mockResolvedValue({
+      adoptionId: 'adoption-field-001-caretaker-zhang',
+      status: 'pending_payment',
+      paymentOrderId: 'payment-field-001-caretaker-zhang',
+      nextUrl: '/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang'
+    })
   })
 
   it('loads recommended and all caretakers', async () => {
@@ -46,6 +64,7 @@ describe('CaretakerSelectPage', () => {
     await wrapper.get('[data-test="confirm-selection"]').trigger('click')
     await flushPromises()
 
+    expect(createAdoption).toHaveBeenCalledWith({ fieldId: 'field-001', caretakerId: 'caretaker-zhang' })
     expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang' })
   })
 })
