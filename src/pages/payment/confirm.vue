@@ -10,6 +10,10 @@ const props = withDefaults(defineProps<{
 })
 
 const adoption = ref<Adoption | undefined>(getStoredAdoption(props.adoptionId))
+
+function pay() {
+  uni.showToast({ title: '支付功能暂未开放', icon: 'none' })
+}
 </script>
 
 <template>
@@ -20,7 +24,7 @@ const adoption = ref<Adoption | undefined>(getStoredAdoption(props.adoptionId))
       <text>田地编号：{{ adoption.fieldId }}</text>
       <text>管护员编号：{{ adoption.caretakerId }}</text>
       <text>支付单号：{{ adoption.paymentOrderId }}</text>
-      <button>去支付</button>
+      <button data-test="pay-button" @click="pay">去支付</button>
     </view>
     <view class="card" v-else>
       <text class="title">未找到认养记录</text>

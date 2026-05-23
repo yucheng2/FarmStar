@@ -87,7 +87,7 @@ onMounted(() => {
     <view v-else class="content">
       <view class="section">
         <text class="section-title">系统推荐（3公里内）</text>
-        <scroll-view scroll-x class="caretaker-scroll">
+        <view class="caretaker-scroll">
           <view class="caretaker-row">
             <CaretakerAvatarCard
               v-for="caretaker in recommendedCaretakers"
@@ -99,12 +99,12 @@ onMounted(() => {
               @detail="showDetail"
             />
           </view>
-        </scroll-view>
+        </view>
       </view>
 
       <view class="section">
         <text class="section-title">全部管护员</text>
-        <scroll-view scroll-x class="caretaker-scroll">
+        <view class="caretaker-scroll">
           <view class="caretaker-row">
             <CaretakerAvatarCard
               v-for="caretaker in allCaretakers"
@@ -116,7 +116,7 @@ onMounted(() => {
               @detail="showDetail"
             />
           </view>
-        </scroll-view>
+        </view>
       </view>
 
       <view class="selected-summary">
@@ -176,7 +176,9 @@ onMounted(() => {
 }
 
 .caretaker-scroll {
+  overflow-x: auto;
   white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
 }
 
 .caretaker-row {
