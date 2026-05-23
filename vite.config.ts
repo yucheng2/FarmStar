@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => ({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
-    css: false
+    css: false,
+    exclude: ['node_modules/**', 'dist/**', 'unpackage/**', '.worktrees/**']
   }
 }))
