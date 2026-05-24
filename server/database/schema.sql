@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS adoptions (
   status TEXT NOT NULL DEFAULT 'pending_payment',
   payment_order_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
+  paid_at TEXT,
   FOREIGN KEY (field_id) REFERENCES fields(id),
   FOREIGN KEY (caretaker_id) REFERENCES caretakers(id)
 );

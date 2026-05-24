@@ -125,5 +125,16 @@ export function createApp(gardenRepo?: GardenRepository, userRepo?: UserReposito
     }
   })
 
+  app.post<{ Params: { adoptionId: string } }>('/api/adoptions/:adoptionId/pay', async (request, reply) => {
+    try {
+      getUserId(request)
+      return gRepo!.confirmPayment(request.params.adoptionId)
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : '请求失败'
+      const statusCode = message === '认养记录不存在' ? 404 : 400
+      sendError(reply, caughtError, statusCode)
+    }
+  })
+
   return app
 }

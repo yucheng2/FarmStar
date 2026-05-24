@@ -39,10 +39,13 @@ describe('garden routes', () => {
     expect(response.statusCode).toBe(200)
     expect(response.json().items.map((caretaker: { id: string }) => caretaker.id)).toEqual([
       'caretaker-zhang',
+      'caretaker-zhou',
       'caretaker-sun',
       'caretaker-li',
       'caretaker-wang',
-      'caretaker-zhao'
+      'caretaker-chen',
+      'caretaker-zhao',
+      'caretaker-wu'
     ])
   })
 
@@ -51,7 +54,12 @@ describe('garden routes', () => {
     const response = await app.inject({ method: 'GET', url: '/api/caretakers?ratingMin=4.5&experienceRange=5_plus&specialty=vegetable' })
 
     expect(response.statusCode).toBe(200)
-    expect(response.json().items.map((caretaker: { id: string }) => caretaker.id)).toEqual(['caretaker-zhang', 'caretaker-li'])
+    expect(response.json().items.map((caretaker: { id: string }) => caretaker.id)).toEqual([
+      'caretaker-zhang',
+      'caretaker-li',
+      'caretaker-chen',
+      'caretaker-zhou'
+    ])
   })
 
   it('creates adoption and returns it by id', async () => {
@@ -229,5 +237,79 @@ describe('garden routes', () => {
 
     expect(response.statusCode).toBe(404)
     expect(response.json()).toMatchObject({ message: '田地不存在' })
+  })
+
+  it('confirms payment and updates adoption status to active', async () => {
+    const { app, userRepo } = createTestApp()
+    const headers = getAuthHeader(userRepo)
+
+    await app.inject({
+      method: 'POST',
+      url: '/api/adoptions',
+      headers,
+      payload: { fieldId: 'field-001', caretakerId: 'caretaker-zhang' }
+    })
+
+    const payResponse = await app.inject({
+      method: 'POST',
+      url: '/api/adoptions/adoption-field-001-caretaker-zhang/pay',
+      headers
+    })
+
+    expect(payResponse.statusCode).toBe(200)
+    expect(payResponse.json()).toMatchObject({
+      adoptionId: 'adoption-field-001-caretaker-zhang',
+      status: 'active',
+      amount: 120
+    })
+
+    const adoptionResponse = await app.inject({
+      method: 'GET',
+      url: '/api/adoptions/adoption-field-001-caretaker-zhang',
+      headers
+    })
+
+    expect(adoptionResponse.json().status).toBe('active')
+  })
+
+  it('rejects payment for non-existent adoption', async () => {
+    const { app, userRepo } = createTestApp()
+    const headers = getAuthHeader(userRepo)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/adoptions/non-existent/pay',
+      headers
+    })
+
+    expect(response.statusCode).toBe(404)
+    expect(response.json()).toMatchObject({ message: '认养记录不存在' })
+  })
+
+  it('rejects payment for already paid adoption', async () => {
+    const { app, userRepo } = createTestApp()
+    const headers = getAuthHeader(userRepo)
+
+    await app.inject({
+      method: 'POST',
+      url: '/api/adoptions',
+      headers,
+      payload: { fieldId: 'field-001', caretakerId: 'caretaker-zhang' }
+    })
+
+    await app.inject({
+      method: 'POST',
+      url: '/api/adoptions/adoption-field-001-caretaker-zhang/pay',
+      headers
+    })
+
+    const secondPayResponse = await app.inject({
+      method: 'POST',
+      url: '/api/adoptions/adoption-field-001-caretaker-zhang/pay',
+      headers
+    })
+
+    expect(secondPayResponse.statusCode).toBe(400)
+    expect(secondPayResponse.json()).toMatchObject({ message: '该认养已支付' })
   })
 })

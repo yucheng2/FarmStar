@@ -242,6 +242,29 @@ export function createGardenRepository(options: GardenRepositoryOptions) {
     }
   }
 
+  function confirmPayment(adoptionId: string): { adoptionId: string; status: 'active'; amount: number; paidAt: string } {
+    const adoption = getAdoptionById(adoptionId)
+
+    if (adoption.status !== 'pending_payment') {
+      throw new Error('该认养已支付')
+    }
+
+    const field = getFieldById(adoption.fieldId)
+    const amount = field.areaSquareMeters * 12
+    const paidAt = new Date().toISOString()
+
+    db.prepare(`
+      UPDATE adoptions SET status = ?, paid_at = ? WHERE id = ?
+    `).run('active', paidAt, adoptionId)
+
+    return {
+      adoptionId,
+      status: 'active',
+      amount,
+      paidAt
+    }
+  }
+
   return {
     getFields,
     getFieldById,
@@ -250,7 +273,8 @@ export function createGardenRepository(options: GardenRepositoryOptions) {
     getCaretakerById,
     getAdoptions,
     createAdoption,
-    getAdoptionById
+    getAdoptionById,
+    confirmPayment
   }
 }
 

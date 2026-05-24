@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { getAdoptionById, getCaretakerById, getFieldById } from '../../services/gardenApi'
+import { confirmPayment, getAdoptionById, getCaretakerById, getFieldById } from '../../services/gardenApi'
 import { trackEvent } from '../../services/analytics'
 import type { Adoption, Caretaker, Field } from '../../types/garden'
 
@@ -45,16 +45,19 @@ async function loadData() {
   }
 }
 
-async function confirmPayment() {
+async function handleConfirmPayment() {
   if (!adoption.value) return
   submitting.value = true
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await confirmPayment(adoption.value.id)
     submitted.value = true
+    uni.showToast({ title: '支付成功', icon: 'success' })
     trackEvent({ event: 'page_view', userId: 'user-demo', pageName: 'payment_success' })
-  } catch {
-    error.value = '支付处理失败，请重试'
+  } catch (caughtError) {
+    const message = caughtError instanceof Error ? caughtError.message : '支付处理失败，请重试'
+    uni.showToast({ title: message, icon: 'none' })
+    error.value = message
   } finally {
     submitting.value = false
   }
@@ -189,7 +192,7 @@ onMounted(() => {
           data-test="pay-button"
           class="btn-primary w-full h-11"
           :disabled="submitting"
-          @click="confirmPayment"
+          @click="handleConfirmPayment"
         >
           {{ submitting ? '处理中...' : `确认支付 ¥${(field.areaSquareMeters * 12).toFixed(2)}` }}
         </button>

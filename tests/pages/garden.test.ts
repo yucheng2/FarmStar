@@ -39,21 +39,23 @@ describe('GardenPage', () => {
 
     expect(getFields).toHaveBeenCalledWith({})
     expect(wrapper.text()).toContain('我的田园')
-    expect(wrapper.text()).toContain('田地001')
+    expect(wrapper.text()).toContain('青禾村东头菜地')
     expect(wrapper.text()).toContain('我的小菜园')
     expect(getAnalyticsEvents()[0]).toMatchObject({ event: 'page_view', pageName: 'garden' })
   })
 
   it('filters by keyword', async () => {
+    vi.useFakeTimers()
     const wrapper = mount(GardenPage)
     await flushPromises()
 
     await wrapper.get('[data-test="search-input"]').setValue('小菜园')
-    await wrapper.get('[data-test="search-button"]').trigger('click')
+    await vi.advanceTimersByTimeAsync(400)
     await flushPromises()
 
     expect(getFields).toHaveBeenLastCalledWith({ keyword: '小菜园' })
     expect(wrapper.text()).toContain('我的小菜园')
+    vi.useRealTimers()
   })
 
   it('shows map view with field markers', async () => {

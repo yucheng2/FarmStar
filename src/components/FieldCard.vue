@@ -43,7 +43,7 @@ function emitCaretaker() {
 
 <template>
   <view
-    class="card mx-4 mt-4 border border-border transition-shadow duration-200 hover:shadow-lg"
+    class="card border border-border transition-shadow duration-200 hover:shadow-lg"
     data-test="field-card"
   >
     <view class="flex flex-col gap-2">
@@ -56,6 +56,7 @@ function emitCaretaker() {
           data-test="caretaker-avatar"
           :src="field.caretaker.avatarUrl"
           :alt="field.caretaker.name"
+          lazy-load
           @click.stop="emitCaretaker"
         />
       </view>
@@ -73,7 +74,7 @@ function emitCaretaker() {
 
       <!-- Crop Row -->
       <view v-if="field.crop" class="flex items-center gap-2 text-foreground text-sm">
-        <image class="w-6 h-6" :src="field.crop.iconUrl" :alt="field.crop.name" />
+        <image class="w-6 h-6" :src="field.crop.iconUrl" :alt="field.crop.name" lazy-load />
         <text>{{ field.crop.name }}</text>
         <view class="w-[90px] h-2 overflow-hidden rounded-full bg-border">
           <view

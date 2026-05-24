@@ -97,6 +97,13 @@ export type CreateAdoptionResult = {
   nextUrl: string
 }
 
+export type PaymentResult = {
+  adoptionId: string
+  status: 'active'
+  amount: number
+  paidAt: string
+}
+
 export type AnalyticsEventName = 'page_view' | 'caretaker_click' | 'caretaker_detail_view' | 'caretaker_select' | 'caretaker_change'
 
 export type AnalyticsEvent = {

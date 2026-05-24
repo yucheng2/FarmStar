@@ -73,7 +73,9 @@ describe('AdoptionListPage', () => {
 
     const wrapper = mount(AdoptionListPage)
     await flushPromises()
-    await wrapper.get('[data-test="go-adopt-field"]').trigger('click')
+    const actionBtn = wrapper.findAll('button').find(el => el.text() === '去认养田地')
+    expect(actionBtn).toBeTruthy()
+    await actionBtn!.trigger('click')
 
     expect(wrapper.text()).toContain('暂无认养记录')
     expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/garden/index' })
@@ -85,7 +87,7 @@ describe('AdoptionListPage', () => {
     const wrapper = mount(AdoptionListPage)
     await flushPromises()
 
-    expect(wrapper.text()).toContain('认养记录加载失败')
+    expect(wrapper.text()).toContain('加载失败')
     expect(wrapper.text()).toContain('接口不可用')
   })
 })

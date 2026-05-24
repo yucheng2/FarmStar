@@ -8,7 +8,7 @@ describe('FieldCard', () => {
   it('renders idle field and emits adopt action', async () => {
     const wrapper = mount(FieldCard, { props: { field: fields[0] } })
 
-    expect(wrapper.text()).toContain('田地001')
+    expect(wrapper.text()).toContain('青禾村东头菜地')
     expect(wrapper.text()).toContain('面积：10㎡')
     expect(wrapper.text()).toContain('空闲')
     expect(wrapper.text()).toContain('立即认养')

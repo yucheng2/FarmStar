@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import FieldCard from '../../components/FieldCard.vue'
 import FieldMapView from '../../components/FieldMapView.vue'
 import CaretakerDetailModal from '../../components/CaretakerDetailModal.vue'
+import SkeletonLoader from '../../components/SkeletonLoader.vue'
+import EmptyState from '../../components/EmptyState.vue'
 import { getCaretakerById, getFields } from '../../services/gardenApi'
 import { isLoggedIn, logout } from '../../services/authApi'
 import { trackEvent } from '../../services/analytics'
@@ -18,6 +20,16 @@ const selectedCaretaker = ref<Caretaker | null>(null)
 const selectedField = ref<Field | null>(null)
 const modalOpen = ref(false)
 const fieldDetailOpen = ref(false)
+
+// Debounced search
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+watch(keyword, () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    void loadFields()
+  }, 300)
+})
 
 async function loadFields() {
   loading.value = true
@@ -42,6 +54,7 @@ function selectView(view: 'list' | 'map') {
     selectedStatus.value = ''
     void loadFields()
   }
+  uni.showToast({ title: view === 'list' ? '列表视图' : '地图视图', icon: 'none', duration: 800 })
 }
 
 function adoptField(field: Field) {
@@ -90,7 +103,10 @@ function contactCaretaker() {
 
 function handleLogout() {
   logout()
-  uni.reLaunch({ url: '/pages/login/index' })
+  uni.showToast({ title: '已退出登录', icon: 'success' })
+  setTimeout(() => {
+    uni.reLaunch({ url: '/pages/login/index' })
+  }, 500)
 }
 
 function goToLogin() {
@@ -141,7 +157,7 @@ onMounted(() => {
         data-test="search-button"
         class="btn-primary"
         style="width: 72px; height: 36px; padding: 0; font-size: 14px; border-radius: 18px;"
-        @click="loadFields"
+        @click="() => { if (searchTimeout) clearTimeout(searchTimeout); loadFields() }"
       >
         搜索
       </button>
@@ -200,21 +216,31 @@ onMounted(() => {
     </view>
 
     <!-- Content States -->
-    <view v-if="loading" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
-      加载中...
+    <view v-if="loading" style="margin-top: 16px;">
+      <SkeletonLoader v-for="n in 3" :key="n" type="card" />
     </view>
-    <view v-else-if="error" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
-      {{ error }}
+    <view v-else-if="error" style="margin: 16px;">
+      <EmptyState
+        title="加载失败"
+        :description="error"
+        action-text="重试"
+        @action="loadFields"
+      />
     </view>
     <FieldMapView
       v-else-if="activeView === 'map'"
       :fields="fields"
       @marker-tap="showFieldDetails"
     />
-    <view v-else-if="fields.length === 0" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
-      暂无符合条件的田地
+    <view v-else-if="fields.length === 0" style="margin: 16px;">
+      <EmptyState
+        title="暂无田地"
+        description="当前没有符合条件的田地，尝试调整筛选条件或稍后再试。"
+        action-text="清除筛选"
+        @action="selectedStatus = ''; loadFields()"
+      />
     </view>
-    <view v-else style="margin: 16px 16px 0;">
+    <view v-else style="margin: 16px 16px 0; display: flex; flex-direction: column; gap: 12px;">
       <FieldCard
         v-for="field in fields"
         :key="field.id"

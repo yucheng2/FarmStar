@@ -41,6 +41,10 @@ function toggleMode() {
   mode.value = mode.value === 'login' ? 'register' : 'login'
   error.value = ''
 }
+
+function skipLogin() {
+  uni.reLaunch({ url: '/pages/garden/index' })
+}
 </script>
 
 <template>
@@ -97,6 +101,14 @@ function toggleMode() {
         >
           {{ loading ? '处理中...' : mode === 'login' ? '登录' : '注册' }}
         </button>
+
+        <!-- Loading Overlay -->
+        <view
+          v-if="loading"
+          style="position: fixed; inset: 0; background: rgba(255,255,255,0.6); display: flex; align-items: center; justify-content: center; z-index: 50;"
+        >
+          <view style="width: 40px; height: 40px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 9999px; animation: spin 0.8s linear infinite;" />
+        </view>
       </view>
 
       <!-- Toggle -->
@@ -111,7 +123,7 @@ function toggleMode() {
 
       <!-- Skip -->
       <view class="text-center">
-        <view class="text-muted-foreground text-xs" @click="uni.reLaunch({ url: '/pages/garden/index' })">
+        <view class="text-muted-foreground text-xs" @click="skipLogin">
           暂不登录，直接浏览
         </view>
       </view>

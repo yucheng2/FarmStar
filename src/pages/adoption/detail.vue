@@ -75,7 +75,10 @@ function returnToAdoptions() {
 
 function goToPayment() {
   if (!adoption.value) return
-  uni.navigateTo({ url: `/pages/payment/confirm?order_id=${adoption.value.paymentOrderId}` })
+  uni.showToast({ title: '跳转支付...', icon: 'none', duration: 800 })
+  setTimeout(() => {
+    uni.navigateTo({ url: `/pages/payment/confirm?order_id=${adoption.value!.paymentOrderId}` })
+  }, 300)
 }
 
 onMounted(() => {

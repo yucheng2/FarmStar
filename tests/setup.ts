@@ -11,12 +11,14 @@ config.global.stubs = {
 }
 
 const navigateTo = vi.fn()
+const reLaunch = vi.fn()
 const showToast = vi.fn()
 const showModal = vi.fn()
 
 Object.defineProperty(globalThis, 'uni', {
   value: {
     navigateTo,
+    reLaunch,
     showToast,
     showModal
   },

@@ -57,6 +57,23 @@ describe('CaretakerSelectPage', () => {
   })
 
   it('creates adoption and navigates to payment confirmation', async () => {
+    vi.useFakeTimers()
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('.caretaker-card')[0].trigger('click')
+    await wrapper.get('[data-test="confirm-selection"]').trigger('click')
+    await flushPromises()
+    await vi.advanceTimersByTimeAsync(1000)
+
+    expect(createAdoption).toHaveBeenCalledWith({ fieldId: 'field-001', caretakerId: 'caretaker-zhang' })
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang' })
+    vi.useRealTimers()
+  })
+
+  it('shows error when createAdoption fails', async () => {
+    vi.mocked(createAdoption).mockRejectedValueOnce(new Error('该田地已被认养'))
+
     const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
     await flushPromises()
 
@@ -64,7 +81,17 @@ describe('CaretakerSelectPage', () => {
     await wrapper.get('[data-test="confirm-selection"]').trigger('click')
     await flushPromises()
 
-    expect(createAdoption).toHaveBeenCalledWith({ fieldId: 'field-001', caretakerId: 'caretaker-zhang' })
-    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang' })
+    expect(uni.showToast).toHaveBeenCalledWith({ title: '该田地已被认养', icon: 'none' })
+  })
+
+  it('shows detail modal and tracks view event', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('[data-test="caretaker-detail"]')[0].trigger('click')
+
+    expect(wrapper.text()).toContain('张叔')
+    expect(wrapper.text()).toContain('18年管护经验')
+    expect(getAnalyticsEvents().map((event) => event.event)).toContain('caretaker_detail_view')
   })
 })

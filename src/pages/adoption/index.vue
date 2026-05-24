@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import EmptyState from '../../components/EmptyState.vue'
+import SkeletonLoader from '../../components/SkeletonLoader.vue'
 import { getMyAdoptions } from '../../services/gardenApi'
 import type { AdoptionListItem } from '../../types/garden'
 
@@ -55,26 +57,28 @@ onMounted(() => {
     </view>
 
     <!-- Loading -->
-    <view class="card" v-if="loading">
-      <view class="text-foreground text-lg font-bold">加载中...</view>
+    <view v-if="loading" class="flex flex-col gap-3">
+      <SkeletonLoader v-for="n in 2" :key="n" type="card" />
     </view>
 
     <!-- Error -->
-    <view class="card" v-else-if="error">
-      <view class="text-foreground text-lg font-bold">认养记录加载失败</view>
-      <view class="text-muted-foreground text-sm">{{ error }}</view>
-      <button data-test="return-garden" class="btn-primary w-full h-11 mt-3" @click="goToGarden">
-        返回田园
-      </button>
+    <view v-else-if="error">
+      <EmptyState
+        title="加载失败"
+        :description="error"
+        action-text="重试"
+        @action="loadAdoptions"
+      />
     </view>
 
     <!-- Empty -->
-    <view class="card" v-else-if="!hasAdoptions">
-      <view class="text-foreground text-lg font-bold">暂无认养记录</view>
-      <view class="text-muted-foreground text-sm">去田园选择一块可认养田地，提交后会出现在这里。</view>
-      <button data-test="go-adopt-field" class="btn-primary w-full h-11 mt-3" @click="goToGarden">
-        去认养田地
-      </button>
+    <view v-else-if="!hasAdoptions">
+      <EmptyState
+        title="暂无认养记录"
+        description="去田园选择一块可认养田地，提交后会出现在这里。"
+        action-text="去认养田地"
+        @action="goToGarden"
+      />
     </view>
 
     <!-- List -->

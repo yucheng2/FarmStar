@@ -2,25 +2,22 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import PaymentConfirmPage from '../../src/pages/payment/confirm.vue'
 import { caretakers, fields } from '../../src/mocks/gardenData'
-import { getAdoptionById, getCaretakerById, getFieldById } from '../../src/services/gardenApi'
+import { confirmPayment, getAdoptionById, getCaretakerById, getFieldById } from '../../src/services/gardenApi'
 
 vi.mock('../../src/services/gardenApi', () => ({
   getAdoptionById: vi.fn(),
   getFieldById: vi.fn(),
-  getCaretakerById: vi.fn()
+  getCaretakerById: vi.fn(),
+  confirmPayment: vi.fn()
 }))
 
 describe('PaymentConfirmPage', () => {
   beforeEach(() => {
-    vi.useFakeTimers()
     vi.mocked(uni.navigateTo).mockClear()
     vi.mocked(getAdoptionById).mockReset()
     vi.mocked(getFieldById).mockReset()
     vi.mocked(getCaretakerById).mockReset()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
+    vi.mocked(confirmPayment).mockReset()
   })
 
   it('renders payment confirm with field and caretaker info', async () => {
@@ -60,15 +57,20 @@ describe('PaymentConfirmPage', () => {
     })
     vi.mocked(getFieldById).mockResolvedValueOnce(fields[0])
     vi.mocked(getCaretakerById).mockResolvedValueOnce(caretakers[0])
+    vi.mocked(confirmPayment).mockResolvedValueOnce({
+      adoptionId: 'adoption-field-001-caretaker-zhang',
+      status: 'active',
+      amount: 120,
+      paidAt: '2026-05-23T10:05:00+08:00'
+    })
 
     const wrapper = mount(PaymentConfirmPage, { props: { adoptionId: 'adoption-field-001-caretaker-zhang' } })
     await flushPromises()
 
     await wrapper.get('[data-test="pay-button"]').trigger('click')
     await flushPromises()
-    vi.advanceTimersByTime(1600)
-    await flushPromises()
 
+    expect(confirmPayment).toHaveBeenCalledWith('adoption-field-001-caretaker-zhang')
     expect(wrapper.text()).toContain('支付成功')
     expect(wrapper.text()).toContain('查看认养详情')
     expect(wrapper.text()).toContain('返回田园')
@@ -106,5 +108,28 @@ describe('PaymentConfirmPage', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('认养记录不存在')
+  })
+
+  it('shows loading state during payment', async () => {
+    vi.mocked(getAdoptionById).mockResolvedValueOnce({
+      id: 'adoption-field-001-caretaker-zhang',
+      userId: 'user-demo',
+      fieldId: 'field-001',
+      caretakerId: 'caretaker-zhang',
+      status: 'pending_payment',
+      paymentOrderId: 'payment-field-001-caretaker-zhang',
+      createdAt: '2026-05-23T10:00:00+08:00'
+    })
+    vi.mocked(getFieldById).mockResolvedValueOnce(fields[0])
+    vi.mocked(getCaretakerById).mockResolvedValueOnce(caretakers[0])
+    vi.mocked(confirmPayment).mockImplementation(() => new Promise(() => {}))
+
+    const wrapper = mount(PaymentConfirmPage, { props: { adoptionId: 'adoption-field-001-caretaker-zhang' } })
+    await flushPromises()
+
+    await wrapper.get('[data-test="pay-button"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('[data-test="pay-button"]').attributes('disabled')).toBeDefined()
   })
 })
