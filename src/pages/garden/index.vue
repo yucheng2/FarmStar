@@ -5,9 +5,11 @@ import FieldMapView from '../../components/FieldMapView.vue'
 import CaretakerDetailModal from '../../components/CaretakerDetailModal.vue'
 import SkeletonLoader from '../../components/SkeletonLoader.vue'
 import EmptyState from '../../components/EmptyState.vue'
+import NotificationToast from '../../components/NotificationToast.vue'
 import { getCaretakerById, getFields } from '../../services/gardenApi'
 import { isLoggedIn, logout } from '../../services/authApi'
 import { trackEvent } from '../../services/analytics'
+import { useNotifications } from '../../composables/useNotifications'
 import type { Caretaker, CaretakerSummary, Field, FieldFilters, FieldStatus } from '../../types/garden'
 
 const fields = ref<Field[]>([])
@@ -20,6 +22,8 @@ const selectedCaretaker = ref<Caretaker | null>(null)
 const selectedField = ref<Field | null>(null)
 const modalOpen = ref(false)
 const fieldDetailOpen = ref(false)
+
+const { notifications, dismissNotification, markAsRead } = useNotifications()
 
 // Debounced search
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
@@ -79,6 +83,10 @@ function viewMyAdoptions() {
   uni.navigateTo({ url: '/pages/adoption/index' })
 }
 
+function viewProfile() {
+  uni.navigateTo({ url: '/pages/profile/index' })
+}
+
 async function openCaretaker(caretakerSummary: CaretakerSummary | undefined) {
   if (!caretakerSummary) return
   trackEvent({ event: 'caretaker_click', userId: 'user-demo', caretakerId: caretakerSummary.id })
@@ -101,6 +109,19 @@ function contactCaretaker() {
   uni.showToast({ title: '功能暂未开放', icon: 'none' })
 }
 
+function shareCaretaker(caretaker: Caretaker) {
+  const shareData = {
+    title: `${caretaker.name} · ${caretaker.village}管护员`,
+    desc: `${caretaker.experienceYears}年经验 · ${caretaker.rating.toFixed(1)}★ · 擅长${caretaker.specialties.join('/')}`,
+    path: `/pages/garden/index`
+  }
+  uni.showShareMenu({
+    withShareTicket: true,
+    menus: ['shareAppMessage', 'shareTimeline']
+  })
+  uni.showToast({ title: '分享准备就绪', icon: 'none' })
+}
+
 function handleLogout() {
   logout()
   uni.showToast({ title: '已退出登录', icon: 'success' })
@@ -120,6 +141,11 @@ onMounted(() => {
 </script>
 
 <template>
+  <NotificationToast
+    :notifications="notifications"
+    @dismiss="dismissNotification"
+    @mark-read="markAsRead"
+  />
   <view class="min-h-dvh bg-background pb-6">
     <!-- Navigation -->
     <view style="display: flex; align-items: center; justify-content: space-between; margin: 0 16px; padding: 14px 0;">
@@ -127,12 +153,12 @@ onMounted(() => {
       <view class="text-foreground text-lg font-bold">我的田园</view>
       <view
         v-if="isLoggedIn()"
-        data-test="my-adoptions-entry"
+        data-test="profile-entry"
         class="text-primary text-sm"
         style="width: 60px; text-align: right;"
-        @click="viewMyAdoptions"
+        @click="viewProfile"
       >
-        我的认养
+        我的
       </view>
       <view
         v-else
@@ -306,6 +332,7 @@ onMounted(() => {
       @close="closeCaretaker"
       @responsible-fields="filterResponsibleFields"
       @contact="contactCaretaker"
+      @share="shareCaretaker"
     />
   </view>
 </template>

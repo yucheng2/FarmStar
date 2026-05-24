@@ -76,7 +76,23 @@ export function createUserRepository(db: Database.Database) {
     }
   }
 
-  return { createUser, login, verifyToken, getUserById }
+  function changePassword(userId: string, currentPassword: string, newPassword: string): { success: boolean } {
+    const row = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(userId) as
+      | { password_hash: string }
+      | undefined
+
+    if (!row) throw new Error('用户不存在')
+
+    const valid = bcrypt.compareSync(currentPassword, row.password_hash)
+    if (!valid) throw new Error('当前密码错误')
+
+    const newHash = bcrypt.hashSync(newPassword, 10)
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, userId)
+
+    return { success: true }
+  }
+
+  return { createUser, login, verifyToken, getUserById, changePassword }
 }
 
 export type UserRepository = ReturnType<typeof createUserRepository>

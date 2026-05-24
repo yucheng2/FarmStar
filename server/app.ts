@@ -136,5 +136,24 @@ export function createApp(gardenRepo?: GardenRepository, userRepo?: UserReposito
     }
   })
 
+  // User profile
+  app.get('/api/user/profile', async (request, reply) => {
+    try {
+      const userId = getUserId(request)
+      return uRepo!.getUserById(userId)
+    } catch (caughtError) {
+      sendError(reply, caughtError, 401)
+    }
+  })
+
+  app.post<{ Body: { currentPassword: string; newPassword: string } }>('/api/user/change-password', async (request, reply) => {
+    try {
+      const userId = getUserId(request)
+      return uRepo!.changePassword(userId, request.body.currentPassword, request.body.newPassword)
+    } catch (caughtError) {
+      sendError(reply, caughtError, 400)
+    }
+  })
+
   return app
 }

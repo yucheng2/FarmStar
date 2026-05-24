@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import NotificationToast from '../../components/NotificationToast.vue'
 import { confirmPayment, getAdoptionById, getCaretakerById, getFieldById } from '../../services/gardenApi'
 import { trackEvent } from '../../services/analytics'
+import { useNotifications } from '../../composables/useNotifications'
 import type { Adoption, Caretaker, Field } from '../../types/garden'
 
 const props = defineProps<{
@@ -16,6 +18,8 @@ const loading = ref(false)
 const submitting = ref(false)
 const submitted = ref(false)
 const error = ref('')
+
+const { notifications, dismissNotification, markAsRead, addNotification } = useNotifications()
 
 const resolvedAdoptionId = computed(() => props.adoptionId ?? props.adoption_id ?? '')
 
@@ -53,6 +57,11 @@ async function handleConfirmPayment() {
     await confirmPayment(adoption.value.id)
     submitted.value = true
     uni.showToast({ title: '支付成功', icon: 'success' })
+    addNotification({
+      title: '认养支付成功',
+      message: `你已成功认养 ${field.value?.name ?? ''}，可在「我的认养」中查看进度`,
+      type: 'success'
+    })
     trackEvent({ event: 'page_view', userId: 'user-demo', pageName: 'payment_success' })
   } catch (caughtError) {
     const message = caughtError instanceof Error ? caughtError.message : '支付处理失败，请重试'
@@ -79,6 +88,11 @@ onMounted(() => {
 </script>
 
 <template>
+  <NotificationToast
+    :notifications="notifications"
+    @dismiss="dismissNotification"
+    @mark-read="markAsRead"
+  />
   <view class="min-h-dvh bg-background pb-6">
     <!-- Loading -->
     <view v-if="loading" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">

@@ -35,6 +35,12 @@
       "style": {
         "navigationBarTitleText": "认养详情"
       }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "个人中心"
+      }
     }
   ],
   "globalStyle": {

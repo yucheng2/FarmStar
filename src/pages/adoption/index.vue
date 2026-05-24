@@ -2,12 +2,16 @@
 import { computed, onMounted, ref } from 'vue'
 import EmptyState from '../../components/EmptyState.vue'
 import SkeletonLoader from '../../components/SkeletonLoader.vue'
+import NotificationToast from '../../components/NotificationToast.vue'
 import { getMyAdoptions } from '../../services/gardenApi'
+import { useNotifications } from '../../composables/useNotifications'
 import type { AdoptionListItem } from '../../types/garden'
 
 const adoptions = ref<AdoptionListItem[]>([])
 const loading = ref(false)
 const error = ref('')
+
+const { notifications, dismissNotification, markAsRead } = useNotifications()
 
 const hasAdoptions = computed(() => adoptions.value.length > 0)
 
@@ -46,6 +50,11 @@ onMounted(() => {
 </script>
 
 <template>
+  <NotificationToast
+    :notifications="notifications"
+    @dismiss="dismissNotification"
+    @mark-read="markAsRead"
+  />
   <view class="min-h-dvh p-4 bg-background">
     <!-- Hero -->
     <view class="card mb-3" style="background: linear-gradient(135deg, rgb(21 128 61 / 0.08), #ffffff);">

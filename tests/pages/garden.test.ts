@@ -68,13 +68,13 @@ describe('GardenPage', () => {
     expect(wrapper.text()).toContain('已认养')
   })
 
-  it('opens my adoptions entry', async () => {
+  it('opens profile entry', async () => {
     const wrapper = mount(GardenPage)
     await flushPromises()
 
-    await wrapper.get('[data-test="my-adoptions-entry"]').trigger('click')
+    await wrapper.get('[data-test="profile-entry"]').trigger('click')
 
-    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/adoption/index' })
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/profile/index' })
   })
 
   it('navigates to caretaker selection from idle field', async () => {

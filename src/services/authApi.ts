@@ -67,6 +67,14 @@ export async function login(username: string, password: string): Promise<AuthRes
   return result
 }
 
+export async function getUserProfile(): Promise<{ id: string; username: string; createdAt: string }> {
+  return authRequest('/api/user/profile')
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean }> {
+  return authRequest('/api/user/change-password', { body: { currentPassword, newPassword } })
+}
+
 export function logout(): void {
   removeToken()
   uni.removeStorageSync('user_id')

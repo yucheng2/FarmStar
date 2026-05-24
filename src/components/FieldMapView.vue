@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Field } from '../types/garden'
 
 const props = defineProps<{
@@ -84,7 +84,77 @@ function statusColor(status: Field['status']) {
   return '#64748B'
 }
 
-// H5 模拟地图：计算相对位置
+// H5 地图相关
+const mapContainer = ref<HTMLDivElement | null>(null)
+let h5Map: any = null
+
+function initH5Map() {
+  if (typeof window === 'undefined' || !(window as any).TMap) return
+
+  const TMap = (window as any).TMap
+
+  h5Map = new TMap.Map(mapContainer.value, {
+    center: new TMap.LatLng(center.value.latitude, center.value.longitude),
+    zoom: scale.value,
+    mapStyleId: 'style1'
+  })
+
+  // 添加标记点
+  const markerList = mapFields.value.map((field) => ({
+    id: field.id,
+    position: new TMap.LatLng(field.location!.latitude, field.location!.longitude),
+    properties: { field }
+  }))
+
+  if (markerList.length > 0) {
+    const markerLayer = new TMap.MultiMarker({
+      map: h5Map,
+      styles: {
+        default: new TMap.MarkerStyle({
+          width: 28,
+          height: 28,
+          anchor: { x: 14, y: 28 },
+          color: '#15803D'
+        })
+      },
+      geometries: markerList
+    })
+
+    markerLayer.on('click', (e: any) => {
+      const field = e.geometry.properties.field as Field
+      if (field) emit('markerTap', field)
+    })
+  }
+}
+
+function destroyH5Map() {
+  if (h5Map) {
+    h5Map.destroy()
+    h5Map = null
+  }
+}
+
+onMounted(() => {
+  // 延迟初始化，确保地图脚本加载完成
+  if (typeof window !== 'undefined' && (window as any).TMap) {
+    initH5Map()
+  } else {
+    const checkInterval = setInterval(() => {
+      if ((window as any).TMap) {
+        clearInterval(checkInterval)
+        initH5Map()
+      }
+    }, 500)
+    // 10秒后停止检查
+    setTimeout(() => clearInterval(checkInterval), 10000)
+  }
+})
+
+onUnmounted(() => {
+  destroyH5Map()
+})
+
+// H5 模拟地图：计算相对位置（作为 fallback）
 const h5Markers = computed(() => {
   if (mapFields.value.length === 0) return []
 
@@ -98,7 +168,6 @@ const h5Markers = computed(() => {
   const latRange = maxLat - minLat || 0.001
   const lngRange = maxLng - minLng || 0.001
 
-  // 添加 padding
   const padding = 0.15
 
   return mapFields.value.map((field) => ({
@@ -107,6 +176,12 @@ const h5Markers = computed(() => {
     top: `${padding + ((maxLat - field.location!.latitude) / latRange) * (1 - padding * 2) * 100}%`
   }))
 })
+
+const mapLoadFailed = ref(false)
+
+function onMapError() {
+  mapLoadFailed.value = true
+}
 </script>
 
 <template>
@@ -125,7 +200,17 @@ const h5Markers = computed(() => {
 
   <!-- #ifdef H5 -->
   <view style="margin: 16px 16px 0; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-md);">
+    <!-- 真实地图容器 -->
     <view
+      v-show="!mapLoadFailed"
+      ref="mapContainer"
+      style="width: 100%; height: 400px;"
+      @error="onMapError"
+    />
+
+    <!-- Fallback 模拟地图 -->
+    <view
+      v-if="mapLoadFailed"
       style="width: 100%; height: 400px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%); position: relative; display: flex; align-items: center; justify-content: center;"
     >
       <!-- 网格背景 -->
@@ -152,14 +237,12 @@ const h5Markers = computed(() => {
         :style="{ left: marker.left, top: marker.top }"
         @click="onFieldTap(marker.field)"
       >
-        <!-- 标记点 -->
         <view
           style="width: 32px; height: 32px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: 2px solid white;"
           :style="{ backgroundColor: statusColor(marker.field.status) }"
         >
           {{ marker.field.name.charAt(0) }}
         </view>
-        <!-- 标签 -->
         <view
           style="margin-top: 4px; background: white; padding: 3px 8px; border-radius: 6px; font-size: 11px; color: #14532D; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.1); white-space: nowrap;"
         >
@@ -167,11 +250,10 @@ const h5Markers = computed(() => {
         </view>
       </view>
 
-      <!-- 提示文字 -->
       <view
         style="position: absolute; bottom: 8px; left: 8px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 8px; font-size: 11px; color: var(--color-muted-foreground);"
       >
-        H5 模拟地图 · 小程序/App 显示真地图
+        地图加载失败，显示模拟地图
       </view>
     </view>
   </view>

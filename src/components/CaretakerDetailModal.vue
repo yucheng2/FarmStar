@@ -10,6 +10,7 @@ const emit = defineEmits<{
   close: []
   responsibleFields: [caretaker: Caretaker]
   contact: [caretaker: Caretaker]
+  share: [caretaker: Caretaker]
 }>()
 
 function close() {
@@ -22,6 +23,10 @@ function showResponsibleFields() {
 
 function contactCaretaker() {
   if (props.caretaker) emit('contact', props.caretaker)
+}
+
+function shareCaretaker() {
+  if (props.caretaker) emit('share', props.caretaker)
 }
 </script>
 
@@ -85,6 +90,16 @@ function contactCaretaker() {
           @click="contactCaretaker"
         >
           联系管护员
+        </button>
+      </view>
+      <view style="display: flex; gap: 8px;">
+        <button
+          data-test="share-caretaker"
+          class="btn-secondary"
+          style="flex: 1; height: 36px; padding: 0 8px; font-size: 12px; white-space: nowrap; display: flex; align-items: center; justify-content: center;"
+          @click="shareCaretaker"
+        >
+          分享
         </button>
         <button
           data-test="close-modal"
