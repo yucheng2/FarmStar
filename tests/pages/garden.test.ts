@@ -51,6 +51,15 @@ describe('GardenPage', () => {
     expect(wrapper.findAll('view').some((node) => node.text().startsWith('←我的田园'))).toBe(false)
   })
 
+  it('renders search action as an icon button', async () => {
+    const wrapper = mount(GardenPage)
+    await flushPromises()
+
+    expect(wrapper.get('[data-test="search-button"]').text()).toBe('')
+    expect(wrapper.get('[data-test="search-button"]').attributes('aria-label')).toBe('搜索')
+    expect(wrapper.get('[data-test="search-icon"]').element.tagName.toLowerCase()).toBe('svg')
+  })
+
   it('filters by keyword', async () => {
     vi.useFakeTimers()
     const wrapper = mount(GardenPage)
@@ -72,10 +81,11 @@ describe('GardenPage', () => {
     const allFieldsChip = wrapper.findAll('button').find((button) => button.text() === '全部田地')
     const idleChip = wrapper.findAll('button').find((button) => button.text() === '可认养')
 
-    expect(allFieldsChip?.classes()).toContain('btn-secondary')
-    expect(allFieldsChip?.classes()).toContain('btn-secondary-active')
-    expect(idleChip?.classes()).toContain('btn-secondary')
-    expect(idleChip?.classes()).not.toContain('btn-secondary-active')
+    // Default selectedStatus is '', so 全部田地 is active (primary color) and 可认养 is inactive
+    expect(allFieldsChip?.classes()).toContain('bg-[var(--color-primary)]')
+    expect(allFieldsChip?.classes()).toContain('text-[var(--color-primary-foreground)]')
+    expect(idleChip?.classes()).toContain('bg-[var(--color-card)]')
+    expect(idleChip?.classes()).toContain('text-[var(--color-muted-foreground)]')
   })
 
   it('shows map view with field markers', async () => {

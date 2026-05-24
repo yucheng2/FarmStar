@@ -153,35 +153,48 @@ onMounted(() => {
   />
   <view class="min-h-dvh bg-background pb-6">
     <!-- Search Row -->
-    <view style="display: flex; align-items: center; gap: 8px; margin: 16px 16px 0;">
+    <view style="display: flex; align-items: center; gap: 8px; margin: 4px 16px 0;">
       <input
         v-model="keyword"
         data-test="search-input"
         class="input-field"
-        style="flex: 1; height: 36px; padding: 0 14px; font-size: 14px;"
+        style="flex: 1; height: 32px; padding: 0 14px; font-size: 14px;"
         placeholder="搜索田地、作物、管护员"
       />
       <button
         data-test="search-button"
-        class="btn-primary"
-        style="width: 72px; height: 36px; padding: 0; font-size: 14px; border-radius: 18px;"
+        aria-label="搜索"
+        style="width: 32px; height: 32px; padding: 0; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--color-primary); color: var(--color-primary-foreground); border: none; cursor: pointer;"
         @click="() => { if (searchTimeout) clearTimeout(searchTimeout); loadFields() }"
       >
-        搜索
+        <svg
+          data-test="search-icon"
+          width="18"
+          height="18"
+          viewBox="0 0 32 32"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="width: 18px; height: 18px; flex-shrink: 0;"
+          aria-hidden="true"
+        >
+          <circle cx="13" cy="13" r="8" />
+          <path d="m23 23-5-5" />
+        </svg>
       </button>
       <button
         v-if="isLoggedIn()"
         data-test="profile-entry"
-        class="btn-secondary"
-        style="width: 56px; height: 36px; padding: 0; font-size: 14px; border-radius: 18px; flex-shrink: 0;"
+        style="width: 56px; height: 32px; padding: 0; border-radius: 16px; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--color-card); color: var(--color-muted-foreground); border: 1px solid var(--color-border); cursor: pointer;"
         @click="viewProfile"
       >
         我的
       </button>
       <button
         v-else
-        class="btn-secondary"
-        style="width: 56px; height: 36px; padding: 0; font-size: 14px; border-radius: 18px; flex-shrink: 0;"
+        style="width: 56px; height: 32px; padding: 0; border-radius: 16px; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--color-card); color: var(--color-muted-foreground); border: 1px solid var(--color-border); cursor: pointer;"
         @click="goToLogin"
       >
         登录
@@ -189,35 +202,31 @@ onMounted(() => {
     </view>
 
     <!-- Filter Row -->
-    <view style="display: flex; align-items: center; gap: 8px; margin: 12px 16px 0; overflow-x: auto;">
+    <view style="display: flex; align-items: center; gap: 8px; margin: 2px 16px 0; overflow-x: auto; height: 36px;">
       <button
-        class="btn-secondary"
-        :class="selectedStatus === 'idle' ? 'btn-secondary-active' : ''"
-        style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
+        :class="selectedStatus === 'idle' ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-[var(--color-primary)]' : 'bg-[var(--color-card)] text-[var(--color-muted-foreground)] border-[var(--color-border)]'"
+        style="height: 32px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0; display: flex; justify-content: center; align-items: center; border-width: 1px; border-style: solid; border-radius: 9999px;"
         @click="selectedStatus = 'idle'; loadFields()"
       >
         可认养
       </button>
       <button
-        class="btn-secondary"
-        :class="selectedStatus === '' ? 'btn-secondary-active' : ''"
-        style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
+        :class="selectedStatus === '' ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-[var(--color-primary)]' : 'bg-[var(--color-card)] text-[var(--color-muted-foreground)] border-[var(--color-border)]'"
+        style="height: 32px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0; display: flex; justify-content: center; align-items: center; border-width: 1px; border-style: solid; border-radius: 9999px;"
         @click="selectedStatus = ''; loadFields()"
       >
         全部田地
       </button>
       <button
-        class="btn-secondary"
-        :class="selectedStatus === 'adopted' ? 'btn-secondary-active' : ''"
-        style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
+        :class="selectedStatus === 'adopted' ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-[var(--color-primary)]' : 'bg-[var(--color-card)] text-[var(--color-muted-foreground)] border-[var(--color-border)]'"
+        style="height: 32px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0; display: flex; justify-content: center; align-items: center; border-width: 1px; border-style: solid; border-radius: 9999px;"
         @click="selectedStatus = 'adopted'; loadFields()"
       >
         已被认养
       </button>
       <button
-        class="btn-secondary"
-        :class="selectedStatus === 'ready_to_harvest' ? 'btn-secondary-active' : ''"
-        style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
+        :class="selectedStatus === 'ready_to_harvest' ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-[var(--color-primary)]' : 'bg-[var(--color-card)] text-[var(--color-muted-foreground)] border-[var(--color-border)]'"
+        style="height: 32px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0; display: flex; justify-content: center; align-items: center; border-width: 1px; border-style: solid; border-radius: 9999px;"
         @click="selectedStatus = 'ready_to_harvest'; loadFields()"
       >
         待收获
@@ -225,21 +234,19 @@ onMounted(() => {
     </view>
 
     <!-- Tabs -->
-    <view style="display: flex; align-items: center; gap: 8px; margin: 10px 16px 0;">
+    <view style="display: flex; align-items: center; gap: 8px; margin: 4px 16px 0;">
       <button
         data-test="list-tab"
-        class="btn-secondary"
-        :class="activeView === 'list' ? 'btn-secondary-active' : ''"
-        style="flex: 1; height: 30px; padding: 0; font-size: 13px; display: flex; align-items: center; justify-content: center;"
+        :class="activeView === 'list' ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-[var(--color-primary)]' : 'bg-[var(--color-card)] text-[var(--color-muted-foreground)] border-[var(--color-border)]'"
+        style="flex: 1; height: 28px; padding: 0; font-size: 13px; display: flex; align-items: center; justify-content: center; border-width: 1px; border-style: solid; border-radius: 14px;"
         @click="selectView('list')"
       >
         列表视图
       </button>
       <button
         data-test="map-tab"
-        class="btn-secondary"
-        :class="activeView === 'map' ? 'btn-secondary-active' : ''"
-        style="flex: 1; height: 30px; padding: 0; font-size: 13px; display: flex; align-items: center; justify-content: center;"
+        :class="activeView === 'map' ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] border-[var(--color-primary)]' : 'bg-[var(--color-card)] text-[var(--color-muted-foreground)] border-[var(--color-border)]'"
+        style="flex: 1; height: 28px; padding: 0; font-size: 13px; display: flex; align-items: center; justify-content: center; border-width: 1px; border-style: solid; border-radius: 14px;"
         @click="selectView('map')"
       >
         地图视图

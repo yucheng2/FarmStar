@@ -67,6 +67,7 @@ export type Caretaker = CaretakerSummary & {
   completedAdoptionsLast30Days: number
   positiveRate: number
   realPhotoUrl: string
+  phone?: string
 }
 
 export type Adoption = {

@@ -52,7 +52,8 @@ function rowToCaretaker(row: Record<string, unknown>): Caretaker {
     avatarUrl: String(row.avatar_url),
     realPhotoUrl: String(row.real_photo_url),
     distanceKm: row.distance_km ? Number(row.distance_km) : undefined,
-    status: String(row.status) as Caretaker['status']
+    status: String(row.status) as Caretaker['status'],
+    phone: row.phone ? String(row.phone) : undefined
   }
 }
 

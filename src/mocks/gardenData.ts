@@ -15,7 +15,8 @@ export const caretakers: Caretaker[] = [
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhang&backgroundColor=c0aede',
     realPhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
     distanceKm: 1.2,
-    status: 'active'
+    status: 'active',
+    phone: '13812340001'
   },
   {
     id: 'caretaker-li',
@@ -31,7 +32,8 @@ export const caretakers: Caretaker[] = [
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=li&backgroundColor=b6e3f4',
     realPhotoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
     distanceKm: 2.4,
-    status: 'active'
+    status: 'active',
+    phone: '13812340002'
   },
   {
     id: 'caretaker-wang',
@@ -47,7 +49,8 @@ export const caretakers: Caretaker[] = [
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wang&backgroundColor=d1d4f9',
     realPhotoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
     distanceKm: 2.8,
-    status: 'active'
+    status: 'active',
+    phone: '13812340003'
   },
   {
     id: 'caretaker-zhao',
@@ -63,7 +66,8 @@ export const caretakers: Caretaker[] = [
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhao&backgroundColor=ffdfbf',
     realPhotoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop',
     distanceKm: 4.1,
-    status: 'active'
+    status: 'active',
+    phone: '13812340004'
   },
   {
     id: 'caretaker-sun',
@@ -79,7 +83,8 @@ export const caretakers: Caretaker[] = [
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sun&backgroundColor=c0aede',
     realPhotoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop',
     distanceKm: 1.9,
-    status: 'active'
+    status: 'active',
+    phone: '13812340005'
   },
   {
     id: 'caretaker-chen',
@@ -95,7 +100,8 @@ export const caretakers: Caretaker[] = [
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=chen&backgroundColor=b6e3f4',
     realPhotoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
     distanceKm: 3.5,
-    status: 'active'
+    status: 'active',
+    phone: '13812340006'
   },
   {
     id: 'caretaker-wu',
@@ -111,7 +117,8 @@ export const caretakers: Caretaker[] = [
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wu&backgroundColor=d1d4f9',
     realPhotoUrl: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&h=400&fit=crop',
     distanceKm: 5.2,
-    status: 'active'
+    status: 'active',
+    phone: '13812340007'
   },
   {
     id: 'caretaker-zhou',
@@ -127,7 +134,8 @@ export const caretakers: Caretaker[] = [
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhou&backgroundColor=ffdfbf',
     realPhotoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
     distanceKm: 1.5,
-    status: 'active'
+    status: 'active',
+    phone: '13812340008'
   }
 ]
 

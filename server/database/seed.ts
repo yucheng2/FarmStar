@@ -18,8 +18,8 @@ function syncCaretakers(db: Database.Database): void {
     INSERT OR REPLACE INTO caretakers (
       id, name, age, village, experience_years, specialties, rating,
       review_count, completed_adoptions_last_30_days, positive_rate,
-      avatar_url, real_photo_url, distance_km, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      avatar_url, real_photo_url, distance_km, status, phone
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   for (const c of caretakers) {
@@ -27,7 +27,7 @@ function syncCaretakers(db: Database.Database): void {
       c.id, c.name, c.age, c.village, c.experienceYears,
       JSON.stringify(c.specialties), c.rating, c.reviewCount,
       c.completedAdoptionsLast30Days, c.positiveRate,
-      c.avatarUrl, c.realPhotoUrl, c.distanceKm ?? null, c.status
+      c.avatarUrl, c.realPhotoUrl, c.distanceKm ?? null, c.status, c.phone ?? null
     )
   }
 }
@@ -103,6 +103,11 @@ export function seedDatabase(db: Database.Database): void {
   const fieldColumns = db.prepare('PRAGMA table_info(fields)').all() as { name: string }[]
   if (!fieldColumns.some((column) => column.name === 'image_url')) {
     db.prepare('ALTER TABLE fields ADD COLUMN image_url TEXT').run()
+  }
+
+  const caretakerColumns = db.prepare('PRAGMA table_info(caretakers)').all() as { name: string }[]
+  if (!caretakerColumns.some((column) => column.name === 'phone')) {
+    db.prepare('ALTER TABLE caretakers ADD COLUMN phone TEXT').run()
   }
 
   db.prepare(`

@@ -94,4 +94,27 @@ describe('CaretakerSelectPage', () => {
     expect(wrapper.text()).toContain('18年管护经验')
     expect(getAnalyticsEvents().map((event) => event.event)).toContain('caretaker_detail_view')
   })
+
+  it('navigates to garden with caretaker name when clicking responsible fields', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('[data-test="caretaker-detail"]')[0].trigger('click')
+    await wrapper.get('[data-test="responsible-fields"]').trigger('click')
+
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/garden/index?keyword=%E5%BC%A0%E5%8F%94' })
+  })
+
+  it('shows contact info when clicking contact caretaker', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('[data-test="caretaker-detail"]')[0].trigger('click')
+    await wrapper.get('[data-test="contact-caretaker"]').trigger('click')
+
+    expect(wrapper.text()).toContain('联系管护员')
+    expect(wrapper.text()).toContain('张叔')
+    expect(wrapper.text()).toContain('13812340001')
+    expect(wrapper.get('[data-test="contact-modal"]').exists()).toBe(true)
+  })
 })

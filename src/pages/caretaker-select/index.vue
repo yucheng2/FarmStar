@@ -19,6 +19,7 @@ const allCaretakers = ref<Caretaker[]>([])
 const selectedCaretaker = ref<Caretaker | null>(null)
 const detailCaretaker = ref<Caretaker | null>(null)
 const modalOpen = ref(false)
+const contactModalOpen = ref(false)
 const loading = ref(false)
 const error = ref('')
 
@@ -56,8 +57,40 @@ function closeDetail() {
   modalOpen.value = false
 }
 
-function contactCaretaker() {
-  uni.showToast({ title: '功能暂未开放', icon: 'none' })
+function showResponsibleFields(caretaker: Caretaker) {
+  modalOpen.value = false
+  uni.navigateTo({ url: `/pages/garden/index?keyword=${encodeURIComponent(caretaker.name)}` })
+}
+
+function openContactModal() {
+  contactModalOpen.value = true
+}
+
+function closeContactModal() {
+  contactModalOpen.value = false
+}
+
+function shareCaretaker(caretaker: Caretaker) {
+  if (typeof uni.share === 'function') {
+    uni.share({
+      provider: 'weixin',
+      type: 0,
+      title: `推荐管护员 ${caretaker.name}`,
+      summary: `${caretaker.name}，${caretaker.age}岁，${caretaker.village}，${caretaker.experienceYears}年管护经验，评分${caretaker.rating}分`,
+      success: () => {},
+      fail: () => {
+        uni.showToast({ title: '分享失败', icon: 'none' })
+      }
+    })
+  } else if (navigator.share) {
+    navigator.share({
+      title: `推荐管护员 ${caretaker.name}`,
+      text: `${caretaker.name}，${caretaker.age}岁，${caretaker.village}，${caretaker.experienceYears}年管护经验，评分${caretaker.rating}分`,
+      url: window.location.href
+    }).catch(() => {})
+  } else {
+    uni.showToast({ title: '分享不可用', icon: 'none' })
+  }
 }
 
 async function confirmSelection() {
@@ -162,8 +195,37 @@ onMounted(() => {
       :open="modalOpen"
       :caretaker="detailCaretaker"
       @close="closeDetail"
-      @responsible-fields="closeDetail"
-      @contact="contactCaretaker"
+      @responsible-fields="showResponsibleFields"
+      @contact="openContactModal"
+      @share="shareCaretaker"
     />
+
+    <!-- Contact Modal -->
+    <view
+      v-if="contactModalOpen"
+      style="position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.4);"
+      data-test="contact-modal"
+    >
+      <view class="card" style="width: 85%; max-width: 320px; display: flex; flex-direction: column; gap: 12px;">
+        <view style="color: var(--color-foreground); font-size: 16px; font-weight: 700;">联系管护员</view>
+        <view v-if="detailCaretaker?.phone" style="display: flex; flex-direction: column; gap: 8px;">
+          <view style="color: var(--color-foreground); font-size: 14px;">{{ detailCaretaker.name }}：{{ detailCaretaker.phone }}</view>
+          <button
+            class="btn-primary w-full h-10"
+            @click="() => detailCaretaker?.phone && uni.makePhoneCall({ phoneNumber: detailCaretaker.phone })"
+          >
+            拨打电话
+          </button>
+        </view>
+        <view v-else style="color: var(--color-muted-foreground); font-size: 14px;">暂无可用联系方式</view>
+        <button
+          class="btn-primary w-full h-10"
+          style="margin-top: 4px;"
+          @click="closeContactModal"
+        >
+          关闭
+        </button>
+      </view>
+    </view>
   </view>
 </template>

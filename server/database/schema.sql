@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS caretakers (
   avatar_url TEXT NOT NULL,
   real_photo_url TEXT NOT NULL,
   distance_km REAL,
-  status TEXT NOT NULL DEFAULT 'active'
+  status TEXT NOT NULL DEFAULT 'active',
+  phone TEXT
 );
 
 CREATE TABLE IF NOT EXISTS fields (
