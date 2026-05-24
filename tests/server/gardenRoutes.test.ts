@@ -321,6 +321,21 @@ describe('garden routes', () => {
     expect(secondPayResponse.json()).toMatchObject({ message: '该认养已支付' })
   })
 
+  it('seeds monitoring data when an existing database is missing newer fields and caretakers', () => {
+    const db = getDatabase(':memory:')
+    seedDatabase(db)
+
+    db.prepare("DELETE FROM adoptions WHERE field_id NOT IN ('field-001', 'field-002', 'field-003', 'field-004')").run()
+    db.prepare("DELETE FROM field_monitoring_media WHERE field_id NOT IN ('field-001', 'field-002', 'field-003', 'field-004')").run()
+    db.prepare("DELETE FROM field_care_logs WHERE field_id NOT IN ('field-001', 'field-002', 'field-003', 'field-004')").run()
+    db.prepare("DELETE FROM fields WHERE id NOT IN ('field-001', 'field-002', 'field-003', 'field-004')").run()
+    db.prepare("DELETE FROM caretakers WHERE id NOT IN ('caretaker-zhang', 'caretaker-li', 'caretaker-wang', 'caretaker-zhao', 'caretaker-sun')").run()
+
+    expect(() => seedDatabase(db)).not.toThrow()
+    expect(db.prepare("SELECT COUNT(*) as count FROM caretakers WHERE id IN ('caretaker-chen', 'caretaker-wu', 'caretaker-zhou')").get()).toMatchObject({ count: 3 })
+    expect(db.prepare("SELECT COUNT(*) as count FROM fields WHERE id IN ('field-005', 'field-006', 'field-007', 'field-008')").get()).toMatchObject({ count: 4 })
+  })
+
   it('returns monitoring detail for adopted field', async () => {
     const { app } = createTestApp()
     const response = await app.inject({ method: 'GET', url: '/api/fields/field-002/monitoring' })
