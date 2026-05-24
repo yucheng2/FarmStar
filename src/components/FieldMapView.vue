@@ -84,6 +84,13 @@ function statusColor(status: Field['status']) {
   return '#64748B'
 }
 
+function statusLabel(status: Field['status']) {
+  if (status === 'idle') return '可认养'
+  if (status === 'adopted') return '已认养'
+  if (status === 'ready_to_harvest') return '待收获'
+  return '维护中'
+}
+
 // H5 地图相关 (高德地图)
 declare const AMap: any
 const mapContainerId = 'h5-map-container'
@@ -114,34 +121,34 @@ function initH5Map() {
 
     const color = statusColor(field.status)
 
-    // 创建标记点
+    // 创建自定义 HTML 标记点
+    const markerContent = `
+      <div style="
+        width: 28px;
+        height: 28px;
+        background: ${color};
+        border: 2px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      ">
+        ${field.name.charAt(0)}
+      </div>
+    `
+
     const marker = new AMap.Marker({
       position: [field.location.longitude, field.location.latitude],
-      title: field.name,
-      icon: new AMap.Icon({
-        size: new AMap.Size(32, 32),
-        image: '//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png',
-        imageSize: new AMap.Size(32, 32)
-      }),
-      offset: new AMap.Pixel(-16, -32)
+      content: markerContent,
+      offset: new AMap.Pixel(-14, -14),
+      extData: field
     })
 
-    // 创建信息窗体
-    const infoWindow = new AMap.InfoWindow({
-      content: `
-        <div style="min-width: 120px; padding: 8px;">
-          <strong style="font-size: 14px; color: #14532D;">${field.name}</strong>
-          <div style="font-size: 12px; color: #64748B; margin-top: 4px;">
-            ${field.status === 'idle' ? '可认养' : field.status === 'adopted' ? '已认养' : field.status === 'ready_to_harvest' ? '待收获' : '维护中'}
-          </div>
-          <div style="font-size: 11px; color: #64748B; margin-top: 2px;">面积: ${field.areaSquareMeters}㎡</div>
-        </div>
-      `,
-      offset: new AMap.Pixel(0, -32)
-    })
-
-    marker.on('click', () => {
-      infoWindow.open(h5Map, marker.getPosition())
+    AMap.Event.addListener(marker, 'click', () => {
       emit('markerTap', field)
     })
 
