@@ -1,0 +1,38 @@
+{
+  "pages": [
+    {
+      "path": "pages/caretaker-login/index",
+      "style": { "navigationBarTitleText": "养护员登录" }
+    },
+    {
+      "path": "pages/caretaker-home/index",
+      "style": { "navigationBarTitleText": "我的任务" }
+    },
+    {
+      "path": "pages/caretaker-map/index",
+      "style": { "navigationBarTitleText": "田地地图" }
+    },
+    {
+      "path": "pages/caretaker-field/index",
+      "style": { "navigationBarTitleText": "田地详情" }
+    },
+    {
+      "path": "pages/caretaker-care-log/index",
+      "style": { "navigationBarTitleText": "养护记录" }
+    },
+    {
+      "path": "pages/caretaker-scan/index",
+      "style": { "navigationBarTitleText": "扫码" }
+    },
+    {
+      "path": "pages/caretaker-profile/index",
+      "style": { "navigationBarTitleText": "个人中心" }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "FarmStar养护员",
+    "navigationBarBackgroundColor": "#F6FBF3",
+    "backgroundColor": "#F6FBF3"
+  }
+}
