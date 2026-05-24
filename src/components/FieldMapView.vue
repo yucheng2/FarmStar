@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
 import type { Field } from '../types/garden'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 
 const props = defineProps<{
   fields: Field[]
@@ -86,78 +84,91 @@ function statusColor(status: Field['status']) {
   return '#64748B'
 }
 
-// H5 地图相关 (Leaflet)
+// H5 地图相关 (高德地图)
+declare const AMap: any
 const mapContainerId = 'h5-map-container'
-let h5Map: L.Map | null = null
+let h5Map: any = null
 
 function initH5Map() {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined' || typeof AMap === 'undefined') return
 
   const container = document.getElementById(mapContainerId)
   if (!container) return
 
   // 如果已经初始化过，先销毁
   if (h5Map) {
-    h5Map.remove()
+    h5Map.destroy()
     h5Map = null
   }
 
-  h5Map = L.map(mapContainerId, {
-    center: [center.value.latitude, center.value.longitude],
+  h5Map = new AMap.Map(mapContainerId, {
+    center: [center.value.longitude, center.value.latitude], // 高德是 [lng, lat]
     zoom: scale.value,
+    viewMode: '2D',
     zoomControl: true
   })
-
-  // 添加 OpenStreetMap 瓦片层
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 18
-  }).addTo(h5Map)
 
   // 添加标记点
   mapFields.value.forEach((field) => {
     if (!field.location) return
 
     const color = statusColor(field.status)
-    const marker = L.circleMarker([field.location.latitude, field.location.longitude], {
-      radius: 12,
-      fillColor: color,
-      color: '#ffffff',
-      weight: 2,
-      fillOpacity: 1
+
+    // 创建标记点
+    const marker = new AMap.Marker({
+      position: [field.location.longitude, field.location.latitude],
+      title: field.name,
+      icon: new AMap.Icon({
+        size: new AMap.Size(32, 32),
+        image: '//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-default.png',
+        imageSize: new AMap.Size(32, 32)
+      }),
+      offset: new AMap.Pixel(-16, -32)
     })
 
-    marker.bindPopup(`
-      <div style="min-width: 120px;">
-        <strong style="font-size: 14px; color: #14532D;">${field.name}</strong>
-        <div style="font-size: 12px; color: #64748B; margin-top: 4px;">
-          ${field.status === 'idle' ? '可认养' : field.status === 'adopted' ? '已认养' : field.status === 'ready_to_harvest' ? '待收获' : '维护中'}
+    // 创建信息窗体
+    const infoWindow = new AMap.InfoWindow({
+      content: `
+        <div style="min-width: 120px; padding: 8px;">
+          <strong style="font-size: 14px; color: #14532D;">${field.name}</strong>
+          <div style="font-size: 12px; color: #64748B; margin-top: 4px;">
+            ${field.status === 'idle' ? '可认养' : field.status === 'adopted' ? '已认养' : field.status === 'ready_to_harvest' ? '待收获' : '维护中'}
+          </div>
+          <div style="font-size: 11px; color: #64748B; margin-top: 2px;">面积: ${field.areaSquareMeters}㎡</div>
         </div>
-        <div style="font-size: 11px; color: #64748B; margin-top: 2px;">面积: ${field.areaSquareMeters}㎡</div>
-      </div>
-    `)
+      `,
+      offset: new AMap.Pixel(0, -32)
+    })
 
     marker.on('click', () => {
+      infoWindow.open(h5Map, marker.getPosition())
       emit('markerTap', field)
     })
 
-    marker.addTo(h5Map!)
+    h5Map.add(marker)
   })
 }
 
 function destroyH5Map() {
   if (h5Map) {
-    h5Map.remove()
+    h5Map.destroy()
     h5Map = null
   }
 }
 
 onMounted(() => {
-  // 等待 DOM 就绪后初始化 Leaflet
+  // 等待 DOM 就绪后初始化高德地图
   if (typeof window !== 'undefined') {
-    setTimeout(() => {
-      initH5Map()
-    }, 100)
+    const tryInit = () => {
+      if (typeof AMap !== 'undefined') {
+        initH5Map()
+      }
+    }
+    if (typeof AMap !== 'undefined') {
+      tryInit()
+    } else {
+      setTimeout(tryInit, 500)
+    }
   }
 })
 
