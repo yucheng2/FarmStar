@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { getAdoptionById, getCaretakerById, getFieldById } from '../../services/gardenApi'
+import { trackEvent } from '../../services/analytics'
 import type { Adoption, Caretaker, Field } from '../../types/garden'
 
 const props = defineProps<{
@@ -23,6 +24,14 @@ const statusText = computed(() => {
   if (adoption.value.status === 'active') return '认养中'
   if (adoption.value.status === 'completed') return '已完成'
   return '已取消'
+})
+
+const statusColor = computed(() => {
+  if (!adoption.value) return ''
+  if (adoption.value.status === 'pending_payment') return 'bg-amber-50 text-amber-700'
+  if (adoption.value.status === 'active') return 'bg-primary/10 text-primary'
+  if (adoption.value.status === 'completed') return 'bg-slate-100 text-slate-600'
+  return 'bg-red-50 text-red-600'
 })
 
 async function loadDetail() {
@@ -60,125 +69,127 @@ function returnToGarden() {
   uni.navigateTo({ url: '/pages/garden/index' })
 }
 
+function returnToAdoptions() {
+  uni.navigateTo({ url: '/pages/adoption/index' })
+}
+
+function goToPayment() {
+  if (!adoption.value) return
+  uni.navigateTo({ url: `/pages/payment/confirm?order_id=${adoption.value.paymentOrderId}` })
+}
+
 onMounted(() => {
+  trackEvent({ event: 'page_view', userId: 'user-demo', pageName: 'adoption_detail' })
   void loadDetail()
 })
 </script>
 
 <template>
-  <view class="page">
-    <view class="card" v-if="loading">
-      <text class="title">加载中...</text>
+  <view class="min-h-dvh bg-background pb-6">
+    <!-- Loading -->
+    <view v-if="loading" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
+      加载中...
     </view>
 
-    <view class="card" v-else-if="notFound">
-      <text class="title">未找到认养记录</text>
-      <text>请返回田园重新选择田地和管护员。</text>
-      <button data-test="return-garden" @click="returnToGarden">返回田园</button>
+    <!-- Not Found -->
+    <view v-else-if="notFound" class="card" style="margin: 16px;">
+      <view class="text-foreground text-lg font-bold">未找到认养记录</view>
+      <view class="text-muted-foreground text-sm" style="margin-top: 4px;">请返回田园重新选择田地和管护员。</view>
+      <button data-test="return-garden" class="btn-primary w-full h-11 mt-3" @click="returnToGarden">
+        返回田园
+      </button>
     </view>
 
-    <view class="card" v-else-if="error">
-      <text class="title">认养记录加载失败</text>
-      <text>{{ error }}</text>
-      <button data-test="return-garden" @click="returnToGarden">返回田园</button>
+    <!-- Error -->
+    <view v-else-if="error" class="card" style="margin: 16px;">
+      <view class="text-foreground text-lg font-bold">认养记录加载失败</view>
+      <view class="text-muted-foreground text-sm" style="margin-top: 4px;">{{ error }}</view>
+      <button data-test="return-garden" class="btn-primary w-full h-11 mt-3" @click="returnToGarden">
+        返回田园
+      </button>
     </view>
 
-    <view class="detail" v-else-if="adoption && field && caretaker">
-      <view class="hero card">
-        <text class="eyebrow">认养详情</text>
-        <text class="title">{{ statusText }}</text>
-        <text>认养编号：{{ adoption.id }}</text>
-        <text>创建时间：{{ adoption.createdAt }}</text>
-        <text>测试支付单号：{{ adoption.paymentOrderId }}</text>
+    <!-- Detail -->
+    <view v-else-if="adoption && field && caretaker" style="display: flex; flex-direction: column; gap: 12px; margin: 0 16px;">
+      <!-- Status Hero -->
+      <view class="card" style="background: linear-gradient(135deg, rgb(21 128 61 / 0.08), #ffffff);">
+        <view style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <view class="text-primary text-sm font-bold">认养详情</view>
+          <view
+            class="text-xs font-bold"
+            style="padding: 4px 10px; border-radius: 9999px; white-space: nowrap;"
+            :style="{
+              backgroundColor: adoption.status === 'pending_payment' ? 'rgb(245 158 11 / 0.1)' : 'rgb(21 128 61 / 0.1)',
+              color: adoption.status === 'pending_payment' ? '#B45309' : '#15803D'
+            }"
+          >
+            {{ statusText }}
+          </view>
+        </view>
+        <view class="text-foreground text-xl font-bold" style="margin-top: 8px;">{{ field.name }}</view>
+        <view class="text-muted-foreground text-sm" style="margin-top: 4px;">认养编号：{{ adoption.id }}</view>
+        <view class="text-muted-foreground text-sm" style="margin-top: 2px;">创建时间：{{ adoption.createdAt }}</view>
       </view>
 
-      <view class="card">
-        <text class="section-title">田地信息</text>
-        <text>{{ field.name }} · {{ field.code }}</text>
-        <text>面积：{{ field.areaSquareMeters }}㎡</text>
-        <text v-if="field.crop">作物：{{ field.crop.name }} · 生长进度 {{ field.crop.progressPercent }}%</text>
-        <text v-if="field.expectedHarvestDate">预计收获：{{ field.expectedHarvestDate }}</text>
-        <view v-if="field.crop" class="progress-track">
-          <view class="progress-fill" :style="{ width: `${field.crop.progressPercent}%` }" />
+      <!-- Field Info -->
+      <view class="card" style="display: flex; flex-direction: column; gap: 6px;">
+        <view class="text-foreground text-base font-bold">田地信息</view>
+        <view class="text-foreground text-sm">{{ field.name }} · {{ field.code }}</view>
+        <view class="text-foreground text-sm">面积：{{ field.areaSquareMeters }}㎡</view>
+        <view v-if="field.crop" class="text-foreground text-sm">
+          作物：{{ field.crop.name }} · 生长进度 {{ field.crop.progressPercent }}%
+        </view>
+        <view v-if="field.expectedHarvestDate" class="text-muted-foreground text-sm">
+          预计收获：{{ field.expectedHarvestDate }}
+        </view>
+        <view v-if="field.crop" style="height: 10px; overflow: hidden; border-radius: 9999px; background: var(--color-border); margin-top: 4px;">
+          <view
+            style="height: 100%; background: var(--color-primary); border-radius: 9999px;"
+            :style="{ width: `${field.crop.progressPercent}%` }"
+          />
         </view>
       </view>
 
-      <view class="card">
-        <text class="section-title">管护员信息</text>
-        <text>{{ caretaker.name }} · {{ caretaker.rating.toFixed(1) }} ★</text>
-        <text>{{ caretaker.experienceYears }}年管护经验</text>
-        <text>{{ caretaker.village }}</text>
+      <!-- Caretaker Info -->
+      <view class="card" style="display: flex; flex-direction: column; gap: 6px;">
+        <view class="text-foreground text-base font-bold">管护员信息</view>
+        <view style="display: flex; align-items: center; gap: 10px;">
+          <image
+            style="width: 48px; height: 48px; border-radius: 10px; background: rgb(21 128 61 / 0.1); object-fit: cover;"
+            :src="caretaker.avatarUrl"
+            :alt="caretaker.name"
+          />
+          <view style="display: flex; flex-direction: column; gap: 2px;">
+            <view class="text-foreground text-sm font-bold">{{ caretaker.name }} · {{ caretaker.age }}岁</view>
+            <view class="text-muted-foreground text-xs">{{ caretaker.village }} · {{ caretaker.experienceYears }}年经验</view>
+            <view class="text-primary text-xs font-bold">{{ caretaker.rating.toFixed(1) }} ★ · {{ caretaker.reviewCount }}条评价</view>
+          </view>
+        </view>
       </view>
 
-      <button data-test="return-garden" @click="returnToGarden">返回田园</button>
+      <!-- Payment Info -->
+      <view class="card" style="display: flex; flex-direction: column; gap: 6px;">
+        <view class="text-foreground text-base font-bold">支付信息</view>
+        <view class="text-muted-foreground text-sm">支付单号：{{ adoption.paymentOrderId }}</view>
+        <view v-if="adoption.status === 'pending_payment'" class="text-amber-700 text-sm font-bold" style="margin-top: 2px;">
+          待支付 — 请尽快完成支付以确认认养
+        </view>
+      </view>
+
+      <!-- Actions -->
+      <view v-if="adoption.status === 'pending_payment'" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+        <button data-test="go-payment" class="btn-primary w-full h-11" @click="goToPayment">
+          去支付
+        </button>
+        <button data-test="return-garden" class="btn-secondary w-full h-11" @click="returnToGarden">
+          返回田园
+        </button>
+      </view>
+      <view v-else style="margin-top: 4px;">
+        <button data-test="return-garden" class="btn-primary w-full h-11" @click="returnToGarden">
+          返回田园
+        </button>
+      </view>
     </view>
   </view>
 </template>
-
-<style scoped>
-.page {
-  min-height: 100vh;
-  padding: 16px;
-  background: #f6fbf3;
-  box-sizing: border-box;
-}
-
-.detail {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 16px;
-  background: #ffffff;
-  color: #2d3a2d;
-  box-sizing: border-box;
-}
-
-.hero {
-  background: linear-gradient(135deg, #e9f8df, #ffffff);
-}
-
-.eyebrow {
-  color: #4caf50;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.progress-track {
-  height: 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e6eee3;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #4caf50;
-}
-
-button {
-  height: 44px;
-  border: 0;
-  border-radius: 999px;
-  background: #4caf50;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 700;
-}
-</style>

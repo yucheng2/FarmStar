@@ -1,34 +1,63 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { getAdoptionById } from '../../services/gardenApi'
-import type { Adoption } from '../../types/garden'
+import { getAdoptionById, getCaretakerById, getFieldById } from '../../services/gardenApi'
+import { trackEvent } from '../../services/analytics'
+import type { Adoption, Caretaker, Field } from '../../types/garden'
 
 const props = defineProps<{
   adoptionId?: string
   adoption_id?: string
 }>()
 
-const adoption = ref<Adoption | undefined>()
+const adoption = ref<Adoption | null>(null)
+const field = ref<Field | null>(null)
+const caretaker = ref<Caretaker | null>(null)
 const loading = ref(false)
+const submitting = ref(false)
 const submitted = ref(false)
+const error = ref('')
 
-const resolvedAdoptionId = computed(() => props.adoptionId ?? props.adoption_id ?? 'adoption-field-001-caretaker-zhang')
+const resolvedAdoptionId = computed(() => props.adoptionId ?? props.adoption_id ?? '')
 
-async function loadAdoption() {
+async function loadData() {
   loading.value = true
+  error.value = ''
+
+  if (!resolvedAdoptionId.value) {
+    error.value = '缺少认养编号'
+    loading.value = false
+    return
+  }
 
   try {
-    adoption.value = await getAdoptionById(resolvedAdoptionId.value)
-  } catch {
-    adoption.value = undefined
+    const adoptionRecord = await getAdoptionById(resolvedAdoptionId.value)
+    adoption.value = adoptionRecord
+    const [fieldRecord, caretakerRecord] = await Promise.all([
+      getFieldById(adoptionRecord.fieldId),
+      getCaretakerById(adoptionRecord.caretakerId)
+    ])
+    field.value = fieldRecord
+    caretaker.value = caretakerRecord
+  } catch (caughtError) {
+    error.value = caughtError instanceof Error ? caughtError.message : '加载失败'
   } finally {
     loading.value = false
   }
 }
 
-function skipPayment() {
-  submitted.value = true
-  uni.showToast({ title: '认养申请已提交', icon: 'none' })
+async function confirmPayment() {
+  if (!adoption.value) return
+  submitting.value = true
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    submitted.value = true
+    trackEvent({ event: 'page_view', userId: 'user-demo', pageName: 'payment_success' })
+  } catch {
+    error.value = '支付处理失败，请重试'
+  } finally {
+    submitting.value = false
+  }
 }
 
 function viewAdoptionDetail() {
@@ -41,87 +70,133 @@ function returnToGarden() {
 }
 
 onMounted(() => {
-  void loadAdoption()
+  trackEvent({ event: 'page_view', userId: 'user-demo', pageName: 'payment_confirm' })
+  void loadData()
 })
 </script>
 
 <template>
-  <view class="page">
-    <view class="card" v-if="loading">
-      <text class="title">加载中...</text>
+  <view class="min-h-dvh bg-background pb-6">
+    <!-- Loading -->
+    <view v-if="loading" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
+      加载中...
     </view>
-    <view class="card" v-else-if="adoption && submitted">
-      <text class="success-mark">✓</text>
-      <text class="title">认养申请已提交</text>
-      <text>认养编号：{{ adoption.id }}</text>
-      <text>我们已收到你的认养申请，管护员会继续为你照看田地。</text>
-      <button data-test="view-adoption-detail" @click="viewAdoptionDetail">查看认养详情</button>
-      <button data-test="return-garden" class="secondary-button" @click="returnToGarden">返回田园</button>
+
+    <!-- Error -->
+    <view v-else-if="error" class="card" style="margin: 16px;">
+      <view class="text-foreground text-lg font-bold">{{ error }}</view>
+      <button data-test="return-garden" class="btn-primary w-full h-11 mt-3" @click="returnToGarden">
+        返回田园
+      </button>
     </view>
-    <view class="card" v-else-if="adoption">
-      <text class="title">确认认养</text>
-      <text>认养编号：{{ adoption.id }}</text>
-      <text>田地编号：{{ adoption.fieldId }}</text>
-      <text>管护员编号：{{ adoption.caretakerId }}</text>
-      <text>支付单号：{{ adoption.paymentOrderId }}</text>
-      <button data-test="pay-button" @click="skipPayment">提交认养申请</button>
+
+    <!-- Success -->
+    <view v-else-if="submitted && adoption && field && caretaker" style="display: flex; flex-direction: column; gap: 12px; margin: 0 16px;">
+      <view class="card" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 32px 16px;">
+        <view style="width: 56px; height: 56px; border-radius: 9999px; background: var(--color-primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; font-weight: 700;">
+          ✓
+        </view>
+        <view class="text-foreground text-xl font-bold">支付成功</view>
+        <view class="text-muted-foreground text-sm">你已成功认养 {{ field.name }}</view>
+        <view class="text-muted-foreground text-sm">认养编号：{{ adoption.id }}</view>
+      </view>
+
+      <view class="card" style="display: flex; flex-direction: column; gap: 6px;">
+        <view class="text-foreground text-base font-bold">认养信息</view>
+        <view class="text-foreground text-sm">田地：{{ field.name }} · {{ field.areaSquareMeters }}㎡</view>
+        <view class="text-foreground text-sm">管护员：{{ caretaker.name }}</view>
+        <view v-if="field.expectedHarvestDate" class="text-muted-foreground text-sm">
+          预计收获：{{ field.expectedHarvestDate }}
+        </view>
+      </view>
+
+      <view style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+        <button data-test="view-adoption-detail" class="btn-primary w-full h-11" @click="viewAdoptionDetail">
+          查看认养详情
+        </button>
+        <button data-test="return-garden" class="btn-secondary w-full h-11" @click="returnToGarden">
+          返回田园
+        </button>
+      </view>
     </view>
-    <view class="card" v-else>
-      <text class="title">未找到认养记录</text>
-      <text>请返回田园重新选择田地和管护员。</text>
+
+    <!-- Confirm -->
+    <view v-else-if="adoption && field && caretaker" style="display: flex; flex-direction: column; gap: 12px; margin: 0 16px;">
+      <!-- Header -->
+      <view class="card" style="background: linear-gradient(135deg, rgb(21 128 61 / 0.08), #ffffff);">
+        <view style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <view class="text-primary text-sm font-bold">确认认养</view>
+          <view class="text-xs font-bold" style="padding: 4px 10px; border-radius: 9999px; background: rgb(245 158 11 / 0.1); color: #B45309; white-space: nowrap;">
+            待支付
+          </view>
+        </view>
+        <view class="text-foreground text-xl font-bold" style="margin-top: 8px;">{{ field.name }}</view>
+        <view class="text-muted-foreground text-sm" style="margin-top: 4px;">认养编号：{{ adoption.id }}</view>
+      </view>
+
+      <!-- Field Info -->
+      <view class="card" style="display: flex; flex-direction: column; gap: 6px;">
+        <view class="text-foreground text-base font-bold">田地信息</view>
+        <view class="text-foreground text-sm">{{ field.name }} · {{ field.code }}</view>
+        <view class="text-foreground text-sm">面积：{{ field.areaSquareMeters }}㎡</view>
+        <view v-if="field.crop" class="text-foreground text-sm">
+          作物：{{ field.crop.name }} · 生长进度 {{ field.crop.progressPercent }}%
+        </view>
+        <view v-if="field.expectedHarvestDate" class="text-muted-foreground text-sm">
+          预计收获：{{ field.expectedHarvestDate }}
+        </view>
+      </view>
+
+      <!-- Caretaker Info -->
+      <view class="card" style="display: flex; flex-direction: column; gap: 6px;">
+        <view class="text-foreground text-base font-bold">管护员信息</view>
+        <view style="display: flex; align-items: center; gap: 10px;">
+          <image
+            style="width: 48px; height: 48px; border-radius: 10px; background: rgb(21 128 61 / 0.1); object-fit: cover;"
+            :src="caretaker.avatarUrl"
+            :alt="caretaker.name"
+          />
+          <view style="display: flex; flex-direction: column; gap: 2px;">
+            <view class="text-foreground text-sm font-bold">{{ caretaker.name }} · {{ caretaker.age }}岁</view>
+            <view class="text-muted-foreground text-xs">{{ caretaker.village }} · {{ caretaker.experienceYears }}年经验</view>
+            <view class="text-primary text-xs font-bold">{{ caretaker.rating.toFixed(1) }} ★ · {{ caretaker.reviewCount }}条评价</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- Payment Info -->
+      <view class="card" style="display: flex; flex-direction: column; gap: 6px;">
+        <view class="text-foreground text-base font-bold">支付信息</view>
+        <view style="display: flex; align-items: center; justify-content: space-between;">
+          <view class="text-muted-foreground text-sm">认养费用</view>
+          <view class="text-foreground text-lg font-bold">¥{{ (field.areaSquareMeters * 10).toFixed(2) }}</view>
+        </view>
+        <view style="display: flex; align-items: center; justify-content: space-between;">
+          <view class="text-muted-foreground text-sm">管护服务费</view>
+          <view class="text-foreground text-sm">¥{{ (field.areaSquareMeters * 2).toFixed(2) }}</view>
+        </view>
+        <view style="height: 1px; background: var(--color-border); margin: 4px 0;" />
+        <view style="display: flex; align-items: center; justify-content: space-between;">
+          <view class="text-foreground text-sm font-bold">合计</view>
+          <view class="text-primary text-xl font-bold">¥{{ (field.areaSquareMeters * 12).toFixed(2) }}</view>
+        </view>
+        <view class="text-muted-foreground text-xs" style="margin-top: 2px;">支付单号：{{ adoption.paymentOrderId }}</view>
+      </view>
+
+      <!-- Actions -->
+      <view style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+        <button
+          data-test="pay-button"
+          class="btn-primary w-full h-11"
+          :disabled="submitting"
+          @click="confirmPayment"
+        >
+          {{ submitting ? '处理中...' : `确认支付 ¥${(field.areaSquareMeters * 12).toFixed(2)}` }}
+        </button>
+        <button data-test="return-garden" class="btn-secondary w-full h-11" @click="returnToGarden">
+          取消并返回
+        </button>
+      </view>
     </view>
   </view>
 </template>
-
-<style scoped>
-.page {
-  min-height: 100vh;
-  padding: 16px;
-  background: #f6fbf3;
-  box-sizing: border-box;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 16px;
-  background: #ffffff;
-  color: #2d3a2d;
-}
-
-.title {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.success-mark {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #4caf50;
-  color: #ffffff;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 48px;
-  text-align: center;
-}
-
-button {
-  height: 44px;
-  margin-top: 12px;
-  border: 0;
-  border-radius: 999px;
-  background: #4caf50;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.secondary-button {
-  margin-top: 0;
-  background: #eef6ea;
-  color: #4caf50;
-}
-</style>

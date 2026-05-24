@@ -42,7 +42,7 @@ describe('AdoptionDetailPage', () => {
     expect(wrapper.text()).toContain('西红柿')
     expect(wrapper.text()).toContain('生长进度 60%')
     expect(wrapper.text()).toContain('李伯')
-    expect(wrapper.text()).toContain('12年管护经验')
+    expect(wrapper.text()).toContain('12年经验')
     expect(wrapper.text()).toContain('payment-field-002-caretaker-li')
   })
 

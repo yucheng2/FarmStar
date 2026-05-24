@@ -75,24 +75,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <view class="page">
-    <view class="nav">
-      <text class="back">←</text>
-      <text class="title">选择管护员</text>
-      <text class="spacer" />
+  <view class="min-h-dvh pb-[82px] bg-background">
+    <!-- Navigation -->
+    <view class="flex items-center justify-between px-4 py-3.5">
+      <text class="text-primary text-sm w-10">←</text>
+      <text class="text-foreground text-lg font-bold">选择管护员</text>
+      <text class="w-10" />
     </view>
 
-    <view v-if="loading" class="state">加载中...</view>
-    <view v-else-if="error" class="state">{{ error }}</view>
-    <view v-else class="content">
-      <view class="section">
-        <text class="section-title">系统推荐（3公里内）</text>
-        <view class="caretaker-scroll">
-          <view class="caretaker-row">
+    <!-- States -->
+    <view v-if="loading" class="mx-4 mt-6 text-center text-muted-foreground">加载中...</view>
+    <view v-else-if="error" class="mx-4 mt-6 text-center text-muted-foreground">{{ error }}</view>
+
+    <!-- Content -->
+    <view v-else class="flex flex-col">
+      <!-- Recommended -->
+      <view class="mx-4 mt-4">
+        <text class="block mb-3 text-foreground font-bold">系统推荐（3公里内）</text>
+        <view class="overflow-x-auto whitespace-nowrap -webkit-overflow-scrolling-touch">
+          <view class="flex">
             <CaretakerAvatarCard
               v-for="caretaker in recommendedCaretakers"
               :key="caretaker.id"
-              class="caretaker-card"
               :caretaker="caretaker"
               :selected="selectedCaretaker?.id === caretaker.id"
               @select="selectCaretaker"
@@ -102,14 +106,14 @@ onMounted(() => {
         </view>
       </view>
 
-      <view class="section">
-        <text class="section-title">全部管护员</text>
-        <view class="caretaker-scroll">
-          <view class="caretaker-row">
+      <!-- All Caretakers -->
+      <view class="mx-4 mt-4">
+        <text class="block mb-3 text-foreground font-bold">全部管护员</text>
+        <view class="overflow-x-auto whitespace-nowrap -webkit-overflow-scrolling-touch">
+          <view class="flex">
             <CaretakerAvatarCard
               v-for="caretaker in allCaretakers"
               :key="caretaker.id"
-              class="caretaker-card"
               :caretaker="caretaker"
               :selected="selectedCaretaker?.id === caretaker.id"
               @select="selectCaretaker"
@@ -119,13 +123,22 @@ onMounted(() => {
         </view>
       </view>
 
-      <view class="selected-summary">
+      <!-- Selected Summary -->
+      <view class="mx-4 mt-6 text-center text-muted-foreground">
         <text>{{ selectedCaretaker ? `已选择：${selectedCaretaker.name}` : '请选择一位管护员' }}</text>
       </view>
     </view>
 
-    <view class="confirm-bar">
-      <button data-test="confirm-selection" :disabled="!selectedCaretaker" @click="confirmSelection">确认选择</button>
+    <!-- Confirm Bar -->
+    <view class="fixed right-0 bottom-0 left-0 w-full max-w-[480px] mx-auto px-4 py-3 bg-card shadow-[0_-4px_16px_rgba(0,0,0,0.06)] z-40">
+      <button
+        data-test="confirm-selection"
+        class="btn-primary w-full h-11 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="!selectedCaretaker"
+        @click="confirmSelection"
+      >
+        确认选择
+      </button>
     </view>
 
     <CaretakerDetailModal
@@ -137,87 +150,3 @@ onMounted(() => {
     />
   </view>
 </template>
-
-<style scoped>
-.page {
-  min-height: 100vh;
-  padding-bottom: 82px;
-  background: #f6fbf3;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-}
-
-.title {
-  color: #2d3a2d;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.back,
-.spacer {
-  width: 40px;
-  color: #4caf50;
-}
-
-.section {
-  margin: 16px;
-}
-
-.section-title {
-  display: block;
-  margin-bottom: 12px;
-  color: #2d3a2d;
-  font-weight: 700;
-}
-
-.caretaker-scroll {
-  overflow-x: auto;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-}
-
-.caretaker-row {
-  display: flex;
-}
-
-.selected-summary,
-.state {
-  margin: 24px 16px;
-  color: #6b766b;
-  text-align: center;
-}
-
-.confirm-bar {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 12px 16px;
-  background: #ffffff;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
-}
-
-.confirm-bar button {
-  width: 100%;
-  height: 44px;
-  border: 0;
-  border-radius: 999px;
-  background: #4caf50;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.confirm-bar button[disabled] {
-  background: #b7c5b1;
-}
-</style>

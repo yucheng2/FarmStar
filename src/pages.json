@@ -1,6 +1,12 @@
 {
   "pages": [
     {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
       "path": "pages/garden/index",
       "style": {
         "navigationBarTitleText": "我的田园"
@@ -16,6 +22,12 @@
       "path": "pages/payment/confirm",
       "style": {
         "navigationBarTitleText": "确认认养"
+      }
+    },
+    {
+      "path": "pages/adoption/index",
+      "style": {
+        "navigationBarTitleText": "我的认养"
       }
     },
     {

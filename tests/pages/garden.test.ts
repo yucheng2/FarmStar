@@ -10,6 +10,11 @@ vi.mock('../../src/services/gardenApi', () => ({
   getCaretakerById: vi.fn()
 }))
 
+vi.mock('../../src/services/authApi', () => ({
+  isLoggedIn: vi.fn(() => true),
+  logout: vi.fn()
+}))
+
 describe('GardenPage', () => {
   beforeEach(() => {
     clearAnalyticsEvents()
@@ -28,10 +33,11 @@ describe('GardenPage', () => {
     vi.mocked(getCaretakerById).mockResolvedValue(fields[0].caretaker as never)
   })
 
-  it('loads fields and tracks page view', async () => {
+  it('loads all fields by default and tracks page view', async () => {
     const wrapper = mount(GardenPage)
     await flushPromises()
 
+    expect(getFields).toHaveBeenCalledWith({})
     expect(wrapper.text()).toContain('我的田园')
     expect(wrapper.text()).toContain('田地001')
     expect(wrapper.text()).toContain('我的小菜园')
@@ -46,17 +52,27 @@ describe('GardenPage', () => {
     await wrapper.get('[data-test="search-button"]').trigger('click')
     await flushPromises()
 
+    expect(getFields).toHaveBeenLastCalledWith({ keyword: '小菜园' })
     expect(wrapper.text()).toContain('我的小菜园')
-    expect(wrapper.text()).not.toContain('田地001')
   })
 
-  it('shows map view unavailable message', async () => {
+  it('shows map view with field markers', async () => {
     const wrapper = mount(GardenPage)
     await flushPromises()
 
     await wrapper.get('[data-test="map-tab"]').trigger('click')
 
-    expect(wrapper.text()).toContain('地图视图即将开放')
+    expect(wrapper.text()).toContain('可认养')
+    expect(wrapper.text()).toContain('已认养')
+  })
+
+  it('opens my adoptions entry', async () => {
+    const wrapper = mount(GardenPage)
+    await flushPromises()
+
+    await wrapper.get('[data-test="my-adoptions-entry"]').trigger('click')
+
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/adoption/index' })
   })
 
   it('navigates to caretaker selection from idle field', async () => {
@@ -72,7 +88,9 @@ describe('GardenPage', () => {
     const wrapper = mount(GardenPage)
     await flushPromises()
 
-    await wrapper.findAll('[data-test="field-action"]')[1].trigger('click')
+    await wrapper.findAll('button').find((button) => button.text() === '已被认养')?.trigger('click')
+    await flushPromises()
+    await wrapper.findAll('[data-test="field-action"]')[0].trigger('click')
 
     expect(wrapper.get('[data-test="field-detail-modal"]').text()).toContain('我的小菜园')
     expect(wrapper.get('[data-test="field-detail-modal"]').text()).toContain('状态：已认养')
@@ -85,7 +103,9 @@ describe('GardenPage', () => {
     const wrapper = mount(GardenPage)
     await flushPromises()
 
-    await wrapper.findAll('[data-test="field-action"]')[1].trigger('click')
+    await wrapper.findAll('button').find((button) => button.text() === '已被认养')?.trigger('click')
+    await flushPromises()
+    await wrapper.findAll('[data-test="field-action"]')[0].trigger('click')
     await wrapper.get('[data-test="view-field-adoption"]').trigger('click')
 
     expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/adoption/detail?adoption_id=adoption-field-002-caretaker-li' })
@@ -95,7 +115,9 @@ describe('GardenPage', () => {
     const wrapper = mount(GardenPage)
     await flushPromises()
 
-    await wrapper.findAll('[data-test="field-action"]')[1].trigger('click')
+    await wrapper.findAll('button').find((button) => button.text() === '已被认养')?.trigger('click')
+    await flushPromises()
+    await wrapper.findAll('[data-test="field-action"]')[0].trigger('click')
     await wrapper.get('[data-test="close-field-detail"]').trigger('click')
 
     expect(wrapper.find('[data-test="field-detail-modal"]').exists()).toBe(false)

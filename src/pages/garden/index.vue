@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import FieldCard from '../../components/FieldCard.vue'
+import FieldMapView from '../../components/FieldMapView.vue'
 import CaretakerDetailModal from '../../components/CaretakerDetailModal.vue'
 import { getCaretakerById, getFields } from '../../services/gardenApi'
+import { isLoggedIn, logout } from '../../services/authApi'
 import { trackEvent } from '../../services/analytics'
 import type { Caretaker, CaretakerSummary, Field, FieldFilters, FieldStatus } from '../../types/garden'
 
@@ -36,6 +38,10 @@ async function loadFields() {
 
 function selectView(view: 'list' | 'map') {
   activeView.value = view
+  if (view === 'map' && selectedStatus.value) {
+    selectedStatus.value = ''
+    void loadFields()
+  }
 }
 
 function adoptField(field: Field) {
@@ -54,6 +60,10 @@ function closeFieldDetails() {
 function viewFieldAdoption() {
   if (!selectedField.value?.adoptionId) return
   uni.navigateTo({ url: `/pages/adoption/detail?adoption_id=${selectedField.value.adoptionId}` })
+}
+
+function viewMyAdoptions() {
+  uni.navigateTo({ url: '/pages/adoption/index' })
 }
 
 async function openCaretaker(caretakerSummary: CaretakerSummary | undefined) {
@@ -78,6 +88,15 @@ function contactCaretaker() {
   uni.showToast({ title: '功能暂未开放', icon: 'none' })
 }
 
+function handleLogout() {
+  logout()
+  uni.reLaunch({ url: '/pages/login/index' })
+}
+
+function goToLogin() {
+  uni.navigateTo({ url: '/pages/login/index' })
+}
+
 onMounted(() => {
   trackEvent({ event: 'page_view', userId: 'user-demo', pageName: 'garden' })
   void loadFields()
@@ -85,35 +104,117 @@ onMounted(() => {
 </script>
 
 <template>
-  <view class="page">
-    <view class="nav">
-      <text class="back">←</text>
-      <text class="title">我的田园</text>
-      <text class="nav-action">筛选</text>
+  <view class="min-h-dvh bg-background pb-6">
+    <!-- Navigation -->
+    <view style="display: flex; align-items: center; justify-content: space-between; margin: 0 16px; padding: 14px 0;">
+      <view class="text-primary text-sm" style="width: 60px;">←</view>
+      <view class="text-foreground text-lg font-bold">我的田园</view>
+      <view
+        v-if="isLoggedIn()"
+        data-test="my-adoptions-entry"
+        class="text-primary text-sm"
+        style="width: 60px; text-align: right;"
+        @click="viewMyAdoptions"
+      >
+        我的认养
+      </view>
+      <view
+        v-else
+        class="text-primary text-sm"
+        style="width: 60px; text-align: right;"
+        @click="goToLogin"
+      >
+        登录
+      </view>
     </view>
 
-    <view class="search-row">
-      <input v-model="keyword" data-test="search-input" class="search-input" placeholder="搜索田地、作物、管护员" />
-      <button data-test="search-button" class="search-button" @click="loadFields">搜索</button>
+    <!-- Search Row -->
+    <view style="display: flex; align-items: center; gap: 8px; margin: 0 16px;">
+      <input
+        v-model="keyword"
+        data-test="search-input"
+        class="input-field"
+        style="flex: 1; height: 36px; padding: 0 14px; font-size: 14px;"
+        placeholder="搜索田地、作物、管护员"
+      />
+      <button
+        data-test="search-button"
+        class="btn-primary"
+        style="width: 72px; height: 36px; padding: 0; font-size: 14px; border-radius: 18px;"
+        @click="loadFields"
+      >
+        搜索
+      </button>
     </view>
 
-    <view class="filter-row">
-      <button :class="{ active: selectedStatus === '' }" @click="selectedStatus = ''; loadFields()">全部</button>
-      <button :class="{ active: selectedStatus === 'idle' }" @click="selectedStatus = 'idle'; loadFields()">空闲</button>
-      <button :class="{ active: selectedStatus === 'adopted' }" @click="selectedStatus = 'adopted'; loadFields()">已认养</button>
-      <button :class="{ active: selectedStatus === 'ready_to_harvest' }" @click="selectedStatus = 'ready_to_harvest'; loadFields()">待收获</button>
+    <!-- Filter Row -->
+    <view style="display: flex; align-items: center; gap: 8px; margin: 12px 16px 0; overflow-x: auto;">
+      <button
+        :class="selectedStatus === 'idle' ? 'btn-secondary-active' : 'btn-secondary'"
+        style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
+        @click="selectedStatus = 'idle'; loadFields()"
+      >
+        可认养
+      </button>
+      <button
+        :class="selectedStatus === '' ? 'btn-secondary-active' : 'btn-secondary'"
+        style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
+        @click="selectedStatus = ''; loadFields()"
+      >
+        全部田地
+      </button>
+      <button
+        :class="selectedStatus === 'adopted' ? 'btn-secondary-active' : 'btn-secondary'"
+        style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
+        @click="selectedStatus = 'adopted'; loadFields()"
+      >
+        已被认养
+      </button>
+      <button
+        :class="selectedStatus === 'ready_to_harvest' ? 'btn-secondary-active' : 'btn-secondary'"
+        style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
+        @click="selectedStatus = 'ready_to_harvest'; loadFields()"
+      >
+        待收获
+      </button>
     </view>
 
-    <view class="tabs">
-      <button data-test="list-tab" :class="{ active: activeView === 'list' }" @click="selectView('list')">列表视图</button>
-      <button data-test="map-tab" :class="{ active: activeView === 'map' }" @click="selectView('map')">地图视图</button>
+    <!-- Tabs -->
+    <view style="display: flex; align-items: center; gap: 8px; margin: 10px 16px 0;">
+      <button
+        data-test="list-tab"
+        :class="activeView === 'list' ? 'btn-secondary-active' : 'btn-secondary'"
+        style="flex: 1; height: 30px; padding: 0; font-size: 13px; display: flex; align-items: center; justify-content: center;"
+        @click="selectView('list')"
+      >
+        列表视图
+      </button>
+      <button
+        data-test="map-tab"
+        :class="activeView === 'map' ? 'btn-secondary-active' : 'btn-secondary'"
+        style="flex: 1; height: 30px; padding: 0; font-size: 13px; display: flex; align-items: center; justify-content: center;"
+        @click="selectView('map')"
+      >
+        地图视图
+      </button>
     </view>
 
-    <view v-if="loading" class="state">加载中...</view>
-    <view v-else-if="error" class="state">{{ error }}</view>
-    <view v-else-if="activeView === 'map'" class="state">地图视图即将开放</view>
-    <view v-else-if="fields.length === 0" class="state">暂无符合条件的田地</view>
-    <view v-else>
+    <!-- Content States -->
+    <view v-if="loading" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
+      加载中...
+    </view>
+    <view v-else-if="error" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
+      {{ error }}
+    </view>
+    <FieldMapView
+      v-else-if="activeView === 'map'"
+      :fields="fields"
+      @marker-tap="showFieldDetails"
+    />
+    <view v-else-if="fields.length === 0" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
+      暂无符合条件的田地
+    </view>
+    <view v-else style="margin: 16px 16px 0;">
       <FieldCard
         v-for="field in fields"
         :key="field.id"
@@ -124,22 +225,50 @@ onMounted(() => {
       />
     </view>
 
-    <view v-if="fieldDetailOpen && selectedField" class="field-detail-mask" data-test="field-detail-modal">
-      <view class="field-detail-panel">
-        <view class="field-detail-header">
-          <text class="field-detail-title">{{ selectedField.name }}</text>
-          <button data-test="close-field-detail" @click="closeFieldDetails">关闭</button>
+    <!-- Field Detail Modal -->
+    <view
+      v-if="fieldDetailOpen && selectedField"
+      style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.4);"
+      data-test="field-detail-modal"
+    >
+      <view class="card" style="width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px;">
+        <view style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+          <view class="text-foreground text-lg font-bold" style="flex: 1; word-break: break-all;">{{ selectedField.name }}</view>
+          <button
+            data-test="close-field-detail"
+            style="height: 30px; padding: 0 12px; border-radius: 9999px; background: rgb(21 128 61 / 0.1); color: #15803D; font-size: 14px; border: none; cursor: pointer; flex-shrink: 0;"
+            @click="closeFieldDetails"
+          >
+            关闭
+          </button>
         </view>
-        <text>田地编号：{{ selectedField.code }}</text>
-        <text>面积：{{ selectedField.areaSquareMeters }}㎡</text>
-        <text>状态：{{ selectedField.status === 'adopted' ? '已认养' : selectedField.status }}</text>
-        <text v-if="selectedField.crop">作物：{{ selectedField.crop.name }} · 生长进度 {{ selectedField.crop.progressPercent }}%</text>
-        <text v-if="selectedField.expectedHarvestDate">预计收获：{{ selectedField.expectedHarvestDate }}</text>
-        <text v-if="selectedField.caretaker">管护员：{{ selectedField.caretaker.name }} · {{ selectedField.caretaker.rating.toFixed(1) }} ★</text>
-        <view v-if="selectedField.crop" class="detail-progress-track">
-          <view class="detail-progress-fill" :style="{ width: `${selectedField.crop.progressPercent}%` }" />
+        <view class="text-foreground text-sm">田地编号：{{ selectedField.code }}</view>
+        <view class="text-foreground text-sm">面积：{{ selectedField.areaSquareMeters }}㎡</view>
+        <view class="text-foreground text-sm">
+          状态：{{ selectedField.status === 'adopted' ? '已认养' : selectedField.status }}
         </view>
-        <button v-if="selectedField.adoptionId" data-test="view-field-adoption" class="field-adoption-button" @click="viewFieldAdoption">
+        <view v-if="selectedField.crop" class="text-foreground text-sm">
+          作物：{{ selectedField.crop.name }} · 生长进度 {{ selectedField.crop.progressPercent }}%
+        </view>
+        <view v-if="selectedField.expectedHarvestDate" class="text-foreground text-sm">
+          预计收获：{{ selectedField.expectedHarvestDate }}
+        </view>
+        <view v-if="selectedField.caretaker" class="text-foreground text-sm">
+          管护员：{{ selectedField.caretaker.name }} · {{ selectedField.caretaker.rating.toFixed(1) }} ★
+        </view>
+        <view v-if="selectedField.crop" style="height: 10px; overflow: hidden; border-radius: 9999px; background: var(--color-border);">
+          <view
+            style="height: 100%; background: var(--color-primary); border-radius: 9999px;"
+            :style="{ width: `${selectedField.crop.progressPercent}%` }"
+          />
+        </view>
+        <button
+          v-if="selectedField.adoptionId"
+          data-test="view-field-adoption"
+          class="btn-primary"
+          style="height: 40px; margin-top: 8px;"
+          @click="viewFieldAdoption"
+        >
           查看认养状态
         </button>
       </view>
@@ -154,158 +283,3 @@ onMounted(() => {
     />
   </view>
 </template>
-
-<style scoped>
-.page {
-  min-height: 100vh;
-  background: #f6fbf3;
-  padding-bottom: 24px;
-}
-
-.nav,
-.search-row,
-.filter-row,
-.tabs {
-  display: flex;
-  align-items: center;
-  margin: 0 16px;
-}
-
-.nav {
-  justify-content: space-between;
-  padding: 14px 0;
-}
-
-.title {
-  color: #2d3a2d;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.back,
-.nav-action {
-  color: #4caf50;
-  font-size: 14px;
-}
-
-.search-row {
-  gap: 8px;
-}
-
-.search-input {
-  flex: 1;
-  height: 38px;
-  padding: 0 12px;
-  border: 1px solid #dde8d8;
-  border-radius: 999px;
-  background: #ffffff;
-  box-sizing: border-box;
-}
-
-.search-button,
-.filter-row button,
-.tabs button {
-  border: 0;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #6b766b;
-}
-
-.search-button {
-  width: 72px;
-  height: 38px;
-  background: #4caf50;
-  color: #ffffff;
-}
-
-.filter-row,
-.tabs {
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.filter-row button,
-.tabs button {
-  height: 32px;
-  padding: 0 12px;
-}
-
-.filter-row button.active,
-.tabs button.active {
-  background: #4caf50;
-  color: #ffffff;
-}
-
-.state {
-  margin: 40px 16px;
-  color: #6b766b;
-  text-align: center;
-}
-
-.field-detail-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 18;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.36);
-  box-sizing: border-box;
-}
-
-.field-detail-panel {
-  display: flex;
-  width: 100%;
-  max-width: 420px;
-  flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 18px;
-  background: #ffffff;
-  color: #2d3a2d;
-  box-sizing: border-box;
-}
-
-.field-detail-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.field-detail-title {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.field-detail-header button {
-  height: 30px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 999px;
-  background: #eef6ea;
-  color: #4caf50;
-}
-
-.field-adoption-button {
-  height: 40px;
-  border: 0;
-  border-radius: 999px;
-  background: #4caf50;
-  color: #ffffff;
-  font-weight: 700;
-}
-
-.detail-progress-track {
-  height: 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e6eee3;
-}
-
-.detail-progress-fill {
-  height: 100%;
-  background: #4caf50;
-}
-</style>

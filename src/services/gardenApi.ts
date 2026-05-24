@@ -1,5 +1,7 @@
+import { getToken } from './authApi'
 import type {
   Adoption,
+  AdoptionListItem,
   Caretaker,
   CaretakerFilters,
   CreateAdoptionInput,
@@ -27,9 +29,13 @@ function buildUrl(path: string, query: RequestOptions['query']) {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const token = getToken()
   const response = await fetch(buildUrl(path, options.query), {
     method: options.body ? 'POST' : 'GET',
-    headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
+    headers: {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
     body: options.body ? JSON.stringify(options.body) : undefined
   })
 
@@ -60,6 +66,10 @@ export async function getCaretakers(filters: CaretakerFilters = {}): Promise<Pag
 
 export async function getCaretakerById(caretakerId: string): Promise<Caretaker> {
   return request(`/api/caretakers/${caretakerId}`)
+}
+
+export async function getMyAdoptions(): Promise<PaginatedResult<AdoptionListItem>> {
+  return request('/api/adoptions')
 }
 
 export async function createAdoption(input: CreateAdoptionInput): Promise<CreateAdoptionResult> {

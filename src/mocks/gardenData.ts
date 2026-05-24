@@ -91,7 +91,8 @@ export const fields: Field[] = [
     areaSquareMeters: 10,
     status: 'idle',
     expectedHarvestDate: undefined,
-    caretaker: caretakers[0]
+    caretaker: caretakers[0],
+    location: { latitude: 39.914, longitude: 116.407 }
   },
   {
     id: 'field-002',
@@ -107,7 +108,8 @@ export const fields: Field[] = [
       progressPercent: 60
     },
     expectedHarvestDate: '2026-06-15',
-    caretaker: caretakers[1]
+    caretaker: caretakers[1],
+    location: { latitude: 39.912, longitude: 116.405 }
   },
   {
     id: 'field-003',
@@ -122,7 +124,8 @@ export const fields: Field[] = [
       progressPercent: 95
     },
     expectedHarvestDate: '2026-05-28',
-    caretaker: caretakers[2]
+    caretaker: caretakers[2],
+    location: { latitude: 39.910, longitude: 116.409 }
   },
   {
     id: 'field-004',
@@ -131,6 +134,7 @@ export const fields: Field[] = [
     areaSquareMeters: 15,
     status: 'maintenance',
     expectedHarvestDate: undefined,
-    caretaker: caretakers[3]
+    caretaker: caretakers[3],
+    location: { latitude: 39.916, longitude: 116.403 }
   }
 ]

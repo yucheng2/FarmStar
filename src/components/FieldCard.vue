@@ -18,6 +18,13 @@ const statusText: Record<Field['status'], string> = {
   maintenance: '维护中'
 }
 
+const statusColorMap: Record<Field['status'], string> = {
+  idle: 'bg-primary',
+  adopted: 'bg-sky-500',
+  ready_to_harvest: 'bg-amber-500',
+  maintenance: 'bg-gray-400'
+}
+
 const actionText = props.field.status === 'idle' ? '立即认养' : '查看详情'
 
 function emitAction() {
@@ -35,13 +42,17 @@ function emitCaretaker() {
 </script>
 
 <template>
-  <view class="field-card" data-test="field-card">
-    <view class="field-main">
-      <view class="field-header">
-        <text class="field-name">{{ field.name }}</text>
+  <view
+    class="card mx-4 mt-4 border border-border transition-shadow duration-200 hover:shadow-lg"
+    data-test="field-card"
+  >
+    <view class="flex flex-col gap-2">
+      <!-- Header -->
+      <view class="flex items-center justify-between">
+        <text class="text-foreground text-base font-bold">{{ field.name }}</text>
         <image
           v-if="field.caretaker"
-          class="caretaker-avatar"
+          class="w-20 h-20 rounded-lg bg-primary/10 object-cover cursor-pointer transition-transform duration-200 active:scale-95"
           data-test="caretaker-avatar"
           :src="field.caretaker.avatarUrl"
           :alt="field.caretaker.name"
@@ -49,140 +60,47 @@ function emitCaretaker() {
         />
       </view>
 
-      <view class="field-meta">
+      <!-- Meta -->
+      <view class="flex items-center gap-3 text-muted-foreground text-xs">
         <text>面积：{{ field.areaSquareMeters }}㎡</text>
-        <text class="status" :class="`status-${field.status}`">{{ statusText[field.status] }}</text>
+        <text
+          class="px-2 py-0.5 rounded-full text-white text-xs"
+          :class="statusColorMap[field.status]"
+        >
+          {{ statusText[field.status] }}
+        </text>
       </view>
 
-      <view v-if="field.crop" class="crop-row">
-        <image class="crop-icon" :src="field.crop.iconUrl" :alt="field.crop.name" />
+      <!-- Crop Row -->
+      <view v-if="field.crop" class="flex items-center gap-2 text-foreground text-sm">
+        <image class="w-6 h-6" :src="field.crop.iconUrl" :alt="field.crop.name" />
         <text>{{ field.crop.name }}</text>
-        <view class="progress-track">
-          <view class="progress-fill" :style="{ width: `${field.crop.progressPercent}%` }" />
+        <view class="w-[90px] h-2 overflow-hidden rounded-full bg-border">
+          <view
+            class="h-full bg-primary rounded-full transition-all duration-300"
+            :style="{ width: `${field.crop.progressPercent}%` }"
+          />
         </view>
-        <text>{{ field.crop.progressPercent }}%</text>
+        <text class="text-xs">{{ field.crop.progressPercent }}%</text>
       </view>
-      <view v-else class="crop-row">
-        <text>可种植：蔬菜/水果</text>
+      <view v-else class="text-foreground text-sm">
+        可种植：蔬菜/水果
       </view>
 
-      <view class="field-footer">
-        <text class="harvest">预计收获：{{ field.expectedHarvestDate ?? '--' }}</text>
-        <button class="action-button" data-test="field-action" :disabled="field.status === 'maintenance'" @click.stop="emitAction">
+      <!-- Footer -->
+      <view class="flex items-center justify-between mt-1">
+        <text class="text-muted-foreground text-xs">
+          预计收获：{{ field.expectedHarvestDate ?? '--' }}
+        </text>
+        <button
+          class="btn-primary h-[34px] px-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          data-test="field-action"
+          :disabled="field.status === 'maintenance'"
+          @click.stop="emitAction"
+        >
           {{ actionText }}
         </button>
       </view>
     </view>
   </view>
 </template>
-
-<style scoped>
-.field-card {
-  min-height: 180px;
-  margin: 16px;
-  padding: 16px;
-  border: 1px solid #dde8d8;
-  border-radius: 16px;
-  background: #ffffff;
-  box-sizing: border-box;
-}
-
-.field-header,
-.field-meta,
-.crop-row,
-.field-footer {
-  display: flex;
-  align-items: center;
-}
-
-.field-header,
-.field-footer {
-  justify-content: space-between;
-}
-
-.field-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: #2d3a2d;
-}
-
-.caretaker-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  background: #eef6ea;
-  transform: scale(1);
-  transition: transform 0.2s ease;
-}
-
-.caretaker-avatar:active {
-  transform: scale(0.95);
-}
-
-.field-meta {
-  gap: 12px;
-  margin-top: 8px;
-  color: #6b766b;
-  font-size: 12px;
-}
-
-.status {
-  padding: 3px 8px;
-  border-radius: 999px;
-  color: #ffffff;
-  font-size: 12px;
-}
-
-.status-idle { background: #4caf50; }
-.status-adopted { background: #2196f3; }
-.status-ready_to_harvest { background: #ffc107; color: #2d3a2d; }
-.status-maintenance { background: #9e9e9e; }
-
-.crop-row {
-  gap: 8px;
-  margin-top: 14px;
-  color: #2d3a2d;
-  font-size: 13px;
-}
-
-.crop-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.progress-track {
-  width: 90px;
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e6eee3;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #4caf50;
-}
-
-.field-footer {
-  margin-top: 18px;
-}
-
-.harvest {
-  color: #6b766b;
-  font-size: 12px;
-}
-
-.action-button {
-  min-width: 88px;
-  height: 34px;
-  border: 0;
-  border-radius: 999px;
-  background: #4caf50;
-  color: #ffffff;
-  font-size: 13px;
-}
-
-.action-button[disabled] {
-  background: #b7c5b1;
-}
-</style>

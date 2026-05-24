@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import uniPlugin from '@dcloudio/vite-plugin-uni'
+import tailwindcss from '@tailwindcss/vite'
 
 const uni = typeof uniPlugin === 'function' ? uniPlugin : uniPlugin.default
 
 export default defineConfig(({ mode }) => ({
-  plugins: [mode === 'test' ? vue() : uni()],
+  plugins: [tailwindcss(), mode === 'test' ? vue() : uni()],
   test: {
     environment: 'jsdom',
     globals: true,

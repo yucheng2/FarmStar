@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@theme {
+  /* FarmStar Design System - Organic Biophilic */
+
+  /* Colors */
+  --color-primary: #15803D;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #22C55E;
+  --color-secondary-foreground: #0F172A;
+  --color-accent: #A16207;
+  --color-accent-foreground: #FFFFFF;
+  --color-background: #F0FDF4;
+  --color-foreground: #14532D;
+  --color-muted: #E8F0F1;
+  --color-muted-foreground: #64748B;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #14532D;
+  --color-border: #BBF7D0;
+  --color-destructive: #DC2626;
+  --color-destructive-foreground: #FFFFFF;
+  --color-ring: #15803D;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Border Radius - Organic curves */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Spacing scale based on 4pt/8dp system */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+
+  /* Shadows - Natural and soft */
+  --shadow-sm: 0 1px 2px 0 rgb(21 128 61 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(21 128 61 / 0.08), 0 2px 4px -2px rgb(21 128 61 / 0.04);
+  --shadow-lg: 0 10px 15px -3px rgb(21 128 61 / 0.08), 0 4px 6px -4px rgb(21 128 61 / 0.04);
+  --shadow-xl: 0 20px 25px -5px rgb(21 128 61 / 0.08), 0 8px 10px -6px rgb(21 128 61 / 0.04);
+}
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Base styles */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom utility classes - using @layer utilities for proper layering */
+@layer utilities {
+  .btn-primary {
+    background-color: var(--color-primary) !important;
+    color: var(--color-primary-foreground) !important;
+    border-radius: var(--radius-full) !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    transition: all 150ms ease-out !important;
+    cursor: pointer !important;
+    border: none !important;
+    line-height: 1.5 !important;
+  }
+
+  .btn-primary:hover {
+    background-color: #166534 !important;
+    transform: scale(1.02);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-card) !important;
+    color: var(--color-muted-foreground) !important;
+    border-radius: var(--radius-full) !important;
+    padding: 8px 16px !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    transition: all 150ms ease-out !important;
+    cursor: pointer !important;
+    border: 1px solid var(--color-border) !important;
+    line-height: 1.5 !important;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-muted) !important;
+    color: var(--color-foreground) !important;
+  }
+
+  .btn-secondary-active {
+    background-color: var(--color-primary) !important;
+    color: var(--color-primary-foreground) !important;
+    border-color: var(--color-primary) !important;
+  }
+
+  .card {
+    background-color: var(--color-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-4);
+  }
+
+  .input-field {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--color-foreground);
+    transition: all 150ms ease-out;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgb(21 128 61 / 0.1);
+  }
+
+  .input-field::placeholder {
+    color: var(--color-muted-foreground);
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

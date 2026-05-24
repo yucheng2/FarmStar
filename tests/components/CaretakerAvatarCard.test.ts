@@ -16,7 +16,7 @@ describe('CaretakerAvatarCard', () => {
   it('applies selected class and emits select', async () => {
     const wrapper = mount(CaretakerAvatarCard, { props: { caretaker: caretakers[0], selected: true } })
 
-    expect(wrapper.classes()).toContain('selected')
+    expect(wrapper.classes()).toContain('border-primary')
 
     await wrapper.trigger('click')
 

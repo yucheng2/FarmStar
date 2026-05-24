@@ -21,6 +21,11 @@ export type CaretakerSummary = {
   status: CaretakerStatus
 }
 
+export type FieldLocation = {
+  latitude: number
+  longitude: number
+}
+
 export type Field = {
   id: string
   code: string
@@ -31,6 +36,7 @@ export type Field = {
   crop?: Crop
   expectedHarvestDate?: string
   caretaker?: CaretakerSummary
+  location?: FieldLocation
 }
 
 export type Caretaker = CaretakerSummary & {
@@ -51,6 +57,11 @@ export type Adoption = {
   status: AdoptionStatus
   paymentOrderId: string
   createdAt: string
+}
+
+export type AdoptionListItem = Adoption & {
+  field: Field
+  caretaker: Caretaker
 }
 
 export type FieldFilters = {

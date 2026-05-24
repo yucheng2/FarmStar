@@ -5,8 +5,10 @@ import {
   getCaretakerById,
   getCaretakers,
   getFields,
+  getMyAdoptions,
   getRecommendedCaretakers
 } from '../../src/services/gardenApi'
+import * as authApi from '../../src/services/authApi'
 
 const fetchMock = vi.fn()
 
@@ -14,6 +16,7 @@ describe('gardenApi', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
+    vi.spyOn(authApi, 'getToken').mockReturnValue('test-token')
   })
 
   it('requests fields with status and keyword query', async () => {
@@ -23,7 +26,7 @@ describe('gardenApi', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/fields?status=idle&keyword=%E7%94%B0%E5%9C%B0001', {
       method: 'GET',
-      headers: undefined,
+      headers: { Authorization: 'Bearer test-token' },
       body: undefined
     })
     expect(result.items[0]).toMatchObject({ code: '田地001', status: 'idle' })
@@ -36,7 +39,7 @@ describe('gardenApi', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/fields/field-001/recommended-caretakers', {
       method: 'GET',
-      headers: undefined,
+      headers: { Authorization: 'Bearer test-token' },
       body: undefined
     })
     expect(result.items.map((caretaker) => caretaker.id)).toEqual(['caretaker-zhang'])
@@ -49,7 +52,7 @@ describe('gardenApi', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/caretakers?ratingMin=4.5&experienceRange=5_plus&specialty=vegetable', {
       method: 'GET',
-      headers: undefined,
+      headers: { Authorization: 'Bearer test-token' },
       body: undefined
     })
   })
@@ -61,7 +64,7 @@ describe('gardenApi', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/caretakers/caretaker-zhang', {
       method: 'GET',
-      headers: undefined,
+      headers: { Authorization: 'Bearer test-token' },
       body: undefined
     })
     expect(caretaker.name).toBe('张叔')
@@ -82,10 +85,23 @@ describe('gardenApi', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/adoptions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
       body: JSON.stringify({ fieldId: 'field-001', caretakerId: 'caretaker-zhang' })
     })
     expect(adoption.nextUrl).toBe('/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang')
+  })
+
+  it('requests my adoptions', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: 'adoption-field-002-caretaker-li' }], pagination: {} }) })
+
+    const result = await getMyAdoptions()
+
+    expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/adoptions', {
+      method: 'GET',
+      headers: { Authorization: 'Bearer test-token' },
+      body: undefined
+    })
+    expect(result.items[0].id).toBe('adoption-field-002-caretaker-li')
   })
 
   it('requests adoption by id', async () => {
@@ -95,7 +111,7 @@ describe('gardenApi', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/adoptions/adoption-field-001-caretaker-zhang', {
       method: 'GET',
-      headers: undefined,
+      headers: { Authorization: 'Bearer test-token' },
       body: undefined
     })
     expect(adoption.id).toBe('adoption-field-001-caretaker-zhang')
