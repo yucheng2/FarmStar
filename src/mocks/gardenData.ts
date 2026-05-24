@@ -345,6 +345,8 @@ export const careLogs: Record<string, CareLog[]> = {
   ]
 }
 
+export const field002LiveStreamUrl = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
+
 export const fieldMonitoringDetails: Record<string, FieldMonitoringDetail> = Object.fromEntries(
   fields.map((field) => {
     const media = monitoringMedia.filter((item) => item.id.includes(field.id))
@@ -355,10 +357,11 @@ export const fieldMonitoringDetails: Record<string, FieldMonitoringDetail> = Obj
       {
         field,
         caretaker: field.caretaker,
-        monitoringStatus: media.length > 0 ? 'snapshot' : 'unavailable',
-        cameraStatus: 'not_installed',
+        monitoringStatus: field.id === 'field-002' ? 'live' : media.length > 0 ? 'snapshot' : 'unavailable',
+        cameraStatus: field.id === 'field-002' ? 'online' : 'not_installed',
         latestSnapshotUrl: latestMedia?.url,
         latestSnapshotAt: latestMedia?.capturedAt,
+        liveStreamUrl: field.id === 'field-002' ? field002LiveStreamUrl : undefined,
         media,
         careLogs: careLogs[field.id] ?? []
       }

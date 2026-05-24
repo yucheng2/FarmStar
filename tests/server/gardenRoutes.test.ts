@@ -341,11 +341,13 @@ describe('garden routes', () => {
     const response = await app.inject({ method: 'GET', url: '/api/fields/field-002/monitoring' })
 
     expect(response.statusCode).toBe(200)
-    expect(response.json()).toMatchObject({
-      field: { id: 'field-002', name: '我的小菜园', status: 'adopted' },
+    const body = response.json()
+    expect(body).toMatchObject({
+      field: { id: 'field-002', name: '我的小菜园' },
       caretaker: { id: 'caretaker-li', name: '李伯' },
-      monitoringStatus: 'snapshot',
-      cameraStatus: 'not_installed',
+      monitoringStatus: 'live',
+      cameraStatus: 'online',
+      liveStreamUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
       latestSnapshotUrl: expect.stringContaining('https://images.unsplash.com/'),
       careLogs: [
         expect.objectContaining({ action: '浇水', caretakerName: '李伯' }),

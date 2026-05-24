@@ -95,8 +95,30 @@ onMounted(() => {
 
       <view class="card" style="display: flex; flex-direction: column; gap: 8px;">
         <view class="text-foreground text-base font-bold">实时监控</view>
-        <view v-if="monitoring.monitoringStatus === 'live' && monitoring.liveStreamUrl" style="height: 180px; border-radius: 14px; background: #111827; color: #ffffff; display: flex; align-items: center; justify-content: center;">
-          实时画面已接入
+        <view v-if="monitoring.monitoringStatus === 'live' && monitoring.liveStreamUrl" style="position: relative; overflow: hidden; border-radius: 14px; background: #111827;">
+          <video
+            data-test="live-monitoring-video"
+            style="display: block; width: 100%; height: 180px; object-fit: cover; background: #111827;"
+            :src="monitoring.liveStreamUrl"
+            autoplay
+            muted
+            loop
+            playsinline
+            controls
+          />
+          <view style="position: absolute; left: 10px; top: 10px; display: flex; align-items: center; gap: 6px; border-radius: 9999px; background: rgb(220 38 38 / 0.92); padding: 4px 8px; color: #ffffff; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;">
+            <view style="width: 6px; height: 6px; border-radius: 9999px; background: #ffffff;" />
+            LIVE
+          </view>
+          <view style="position: absolute; left: 10px; right: 10px; bottom: 10px; display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; color: #ffffff; text-shadow: 0 1px 8px rgb(0 0 0 / 0.45);">
+            <view>
+              <view style="font-size: 14px; font-weight: 700;">实时画面直播中</view>
+              <view style="margin-top: 2px; font-size: 11px; opacity: 0.86;">{{ monitoring.field.code }} 摄像头</view>
+            </view>
+            <view style="border-radius: 9999px; background: rgb(22 163 74 / 0.92); padding: 4px 8px; font-size: 11px; font-weight: 700;">
+              摄像头在线
+            </view>
+          </view>
         </view>
         <view v-else style="padding: 14px; border-radius: 14px; background: rgb(21 128 61 / 0.08);">
           <view class="text-foreground text-sm font-bold">实时监控暂未开放</view>
@@ -105,7 +127,7 @@ onMounted(() => {
           </view>
         </view>
         <view class="text-muted-foreground text-xs">
-          摄像头状态：{{ monitoring.cameraStatus === 'not_installed' ? '暂未安装' : monitoring.cameraStatus }}
+          摄像头状态：{{ monitoring.cameraStatus === 'not_installed' ? '暂未安装' : monitoring.cameraStatus === 'online' ? '在线' : '离线' }}
         </view>
         <view v-if="monitoring.latestSnapshotAt" class="text-muted-foreground text-xs">
           最近更新：{{ monitoring.latestSnapshotAt }}

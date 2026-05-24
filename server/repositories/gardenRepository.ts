@@ -16,6 +16,8 @@ import type {
   Specialty
 } from '../../src/types/garden'
 
+const field002LiveStreamUrl = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
+
 export type GardenRepositoryOptions = {
   db: Database.Database
 }
@@ -179,10 +181,11 @@ export function createGardenRepository(options: GardenRepositoryOptions) {
     return {
       field,
       caretaker: field.caretaker,
-      monitoringStatus: media.length > 0 ? 'snapshot' : 'unavailable',
-      cameraStatus: 'not_installed',
+      monitoringStatus: field.id === 'field-002' ? 'live' : media.length > 0 ? 'snapshot' : 'unavailable',
+      cameraStatus: field.id === 'field-002' ? 'online' : 'not_installed',
       latestSnapshotUrl: latestMedia?.url,
       latestSnapshotAt: latestMedia?.capturedAt,
+      liveStreamUrl: field.id === 'field-002' ? field002LiveStreamUrl : undefined,
       media,
       careLogs: careLogRows.map(rowToCareLog)
     }

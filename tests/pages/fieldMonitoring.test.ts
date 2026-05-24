@@ -14,7 +14,7 @@ describe('FieldMonitoringPage', () => {
     vi.mocked(getFieldMonitoring).mockReset()
   })
 
-  it('renders monitoring detail for a field with snapshots and care logs', async () => {
+  it('renders live monitoring detail for field-002 with snapshots and care logs', async () => {
     vi.mocked(getFieldMonitoring).mockResolvedValueOnce(fieldMonitoringDetails['field-002'])
 
     const wrapper = mount(FieldMonitoringPage, { props: { fieldId: 'field-002' } })
@@ -26,7 +26,12 @@ describe('FieldMonitoringPage', () => {
     expect(wrapper.text()).toContain('西红柿')
     expect(wrapper.text()).toContain('生长进度 60%')
     expect(wrapper.text()).toContain('李伯')
-    expect(wrapper.text()).toContain('实时监控暂未开放')
+    expect(wrapper.text()).toContain('实时画面直播中')
+    expect(wrapper.text()).toContain('摄像头在线')
+    expect(wrapper.text()).not.toContain('实时监控暂未开放')
+    const liveVideo = wrapper.get('[data-test="live-monitoring-video"]')
+    expect(liveVideo.exists()).toBe(true)
+    expect(liveVideo.attributes('src')).toBe('https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4')
     expect(wrapper.text()).toContain('清晨巡田照片，西红柿长势稳定')
     expect(wrapper.text()).toContain('浇水')
     expect(wrapper.text()).toContain('今日上午完成滴灌补水，土壤湿度正常。')
