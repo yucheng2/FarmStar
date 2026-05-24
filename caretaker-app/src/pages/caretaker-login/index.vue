@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { caretakerLogin, sendVerifyCode } from '../../../services/authApi'
-import { useCareTakerAuth } from '../../../composables/useCareTakerAuth'
+import { caretakerLogin, sendVerifyCode } from '../../services/authApi'
+import { useCareTakerAuth } from '../../composables/useCareTakerAuth'
+import { uni } from '../../utils/uni-mock'
 
 const phone = ref('')
 const code = ref('')
@@ -45,58 +46,78 @@ async function handleLogin() {
 </script>
 
 <template>
-  <view class="min-h-dvh bg-background flex flex-col items-center justify-center px-6">
-    <view class="w-full max-w-sm">
-      <!-- Logo -->
-      <view class="text-center mb-8">
-        <view class="text-3xl font-bold text-primary mb-2">FarmStar</view>
-        <view class="text-muted-foreground">养护员登录</view>
+  <view class="min-h-dvh bg-background flex flex-col items-center justify-center">
+    <!-- Logo Area -->
+    <view class="pb-4 text-center">
+      <view class="flex items-center justify-center gap-3">
+        <view class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-lg">
+          <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+          </svg>
+        </view>
+        <view class="flex items-baseline">
+          <text class="text-2xl font-bold text-primary">FarmStar</text>
+          <text class="text-base font-bold text-primary ml-1">智慧田园</text>
+        </view>
       </view>
+    </view>
 
-      <!-- Form -->
-      <view class="card space-y-4">
+    <!-- Form -->
+    <view class="px-6">
+      <view class="space-y-3">
+        <!-- Phone -->
         <view>
+          <text class="text-sm font-medium text-foreground mb-2 block">手机号</text>
           <input
             v-model="phone"
-            class="input-field w-full"
+            class="w-full h-12 px-4 bg-white border border-border rounded-xl text-base focus:border-primary focus:outline-none transition-colors"
             type="tel"
             placeholder="请输入手机号"
             maxlength="11"
           />
         </view>
-        <view class="flex gap-2">
-          <input
-            v-model="code"
-            class="input-field flex-1"
-            type="number"
-            placeholder="验证码"
-            maxlength="6"
-          />
-          <button
-            class="btn-secondary px-4"
-            :disabled="countdown > 0"
-            @click="handleSendCode"
-          >
-            {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
-          </button>
+
+        <!-- Code -->
+        <view>
+          <text class="text-sm font-medium text-foreground mb-2 block">验证码</text>
+          <view class="flex gap-3">
+            <input
+              v-model="code"
+              class="flex-1 h-12 px-4 bg-white border border-border rounded-xl text-base focus:border-primary focus:outline-none transition-colors"
+              type="text"
+              inputmode="numeric"
+              placeholder="请输入验证码"
+              maxlength="6"
+            />
+            <button
+              class="px-4 h-12 bg-primary text-white rounded-xl font-medium text-sm whitespace-nowrap active:opacity-80 transition-opacity disabled:opacity-50"
+              :disabled="countdown > 0"
+              @click="handleSendCode"
+            >
+              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+            </button>
+          </view>
         </view>
 
-        <view v-if="error" class="text-red-500 text-sm text-center">
-          {{ error }}
+        <!-- Error -->
+        <view v-if="error" class="p-3 bg-red-50 border border-red-100 rounded-xl">
+          <text class="text-sm text-red-600">{{ error }}</text>
         </view>
 
+        <!-- Login -->
         <button
-          class="btn-primary w-full h-12"
+          class="w-full h-12 bg-primary text-white rounded-xl font-semibold text-base active:opacity-80 transition-opacity disabled:opacity-50 mt-4"
           :disabled="loading"
           @click="handleLogin"
         >
-          {{ loading ? '登录中...' : '登录' }}
+          {{ loading ? '登录中...' : '登 录' }}
         </button>
       </view>
 
-      <!-- Demo hint -->
-      <view class="text-center text-muted-foreground text-xs mt-4">
-        测试验证码: 123456
+      <!-- Hint -->
+      <view class="mt-4 flex justify-center w-full">
+        <text class="text-xs text-muted-foreground">测试验证码: 123456</text>
       </view>
     </view>
   </view>
