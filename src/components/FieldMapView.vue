@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import type { Field } from '../types/garden'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const props = defineProps<{
   fields: Field[]
@@ -84,104 +86,84 @@ function statusColor(status: Field['status']) {
   return '#64748B'
 }
 
-// H5 地图相关
-const mapContainer = ref<HTMLDivElement | null>(null)
-let h5Map: any = null
+// H5 地图相关 (Leaflet)
+const mapContainerId = 'h5-map-container'
+let h5Map: L.Map | null = null
 
 function initH5Map() {
-  if (typeof window === 'undefined' || !(window as any).TMap) return
+  if (typeof window === 'undefined') return
 
-  const TMap = (window as any).TMap
+  const container = document.getElementById(mapContainerId)
+  if (!container) return
 
-  h5Map = new TMap.Map(mapContainer.value, {
-    center: new TMap.LatLng(center.value.latitude, center.value.longitude),
+  // 如果已经初始化过，先销毁
+  if (h5Map) {
+    h5Map.remove()
+    h5Map = null
+  }
+
+  h5Map = L.map(mapContainerId, {
+    center: [center.value.latitude, center.value.longitude],
     zoom: scale.value,
-    mapStyleId: 'style1'
+    zoomControl: true
   })
 
+  // 添加 OpenStreetMap 瓦片层
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18
+  }).addTo(h5Map)
+
   // 添加标记点
-  const markerList = mapFields.value.map((field) => ({
-    id: field.id,
-    position: new TMap.LatLng(field.location!.latitude, field.location!.longitude),
-    properties: { field }
-  }))
+  mapFields.value.forEach((field) => {
+    if (!field.location) return
 
-  if (markerList.length > 0) {
-    const markerLayer = new TMap.MultiMarker({
-      map: h5Map,
-      styles: {
-        default: new TMap.MarkerStyle({
-          width: 28,
-          height: 28,
-          anchor: { x: 14, y: 28 },
-          color: '#15803D'
-        })
-      },
-      geometries: markerList
+    const color = statusColor(field.status)
+    const marker = L.circleMarker([field.location.latitude, field.location.longitude], {
+      radius: 12,
+      fillColor: color,
+      color: '#ffffff',
+      weight: 2,
+      fillOpacity: 1
     })
 
-    markerLayer.on('click', (e: any) => {
-      const field = e.geometry.properties.field as Field
-      if (field) emit('markerTap', field)
+    marker.bindPopup(`
+      <div style="min-width: 120px;">
+        <strong style="font-size: 14px; color: #14532D;">${field.name}</strong>
+        <div style="font-size: 12px; color: #64748B; margin-top: 4px;">
+          ${field.status === 'idle' ? '可认养' : field.status === 'adopted' ? '已认养' : field.status === 'ready_to_harvest' ? '待收获' : '维护中'}
+        </div>
+        <div style="font-size: 11px; color: #64748B; margin-top: 2px;">面积: ${field.areaSquareMeters}㎡</div>
+      </div>
+    `)
+
+    marker.on('click', () => {
+      emit('markerTap', field)
     })
-  }
+
+    marker.addTo(h5Map!)
+  })
 }
 
 function destroyH5Map() {
   if (h5Map) {
-    h5Map.destroy()
+    h5Map.remove()
     h5Map = null
   }
 }
 
 onMounted(() => {
-  // 延迟初始化，确保地图脚本加载完成
-  if (typeof window !== 'undefined' && (window as any).TMap) {
-    initH5Map()
-  } else {
-    const checkInterval = setInterval(() => {
-      if ((window as any).TMap) {
-        clearInterval(checkInterval)
-        initH5Map()
-      }
-    }, 500)
-    // 10秒后停止检查
-    setTimeout(() => clearInterval(checkInterval), 10000)
+  // 等待 DOM 就绪后初始化 Leaflet
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
+      initH5Map()
+    }, 100)
   }
 })
 
 onUnmounted(() => {
   destroyH5Map()
 })
-
-// H5 模拟地图：计算相对位置（作为 fallback）
-const h5Markers = computed(() => {
-  if (mapFields.value.length === 0) return []
-
-  const lats = mapFields.value.map((f) => f.location!.latitude)
-  const lngs = mapFields.value.map((f) => f.location!.longitude)
-  const minLat = Math.min(...lats)
-  const maxLat = Math.max(...lats)
-  const minLng = Math.min(...lngs)
-  const maxLng = Math.max(...lngs)
-
-  const latRange = maxLat - minLat || 0.001
-  const lngRange = maxLng - minLng || 0.001
-
-  const padding = 0.15
-
-  return mapFields.value.map((field) => ({
-    field,
-    left: `${padding + ((field.location!.longitude - minLng) / lngRange) * (1 - padding * 2) * 100}%`,
-    top: `${padding + ((maxLat - field.location!.latitude) / latRange) * (1 - padding * 2) * 100}%`
-  }))
-})
-
-const mapLoadFailed = ref(false)
-
-function onMapError() {
-  mapLoadFailed.value = true
-}
 </script>
 
 <template>
@@ -200,62 +182,10 @@ function onMapError() {
 
   <!-- #ifdef H5 -->
   <view style="margin: 16px 16px 0; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-md);">
-    <!-- 真实地图容器 -->
     <view
-      v-show="!mapLoadFailed"
-      ref="mapContainer"
+      id="h5-map-container"
       style="width: 100%; height: 400px;"
-      @error="onMapError"
     />
-
-    <!-- Fallback 模拟地图 -->
-    <view
-      v-if="mapLoadFailed"
-      style="width: 100%; height: 400px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%); position: relative; display: flex; align-items: center; justify-content: center;"
-    >
-      <!-- 网格背景 -->
-      <view style="position: absolute; inset: 0; opacity: 0.3;">
-        <view
-          v-for="n in 8"
-          :key="n"
-          style="position: absolute; width: 100%; height: 1px; background: #81c784;"
-          :style="{ top: `${n * 12.5}%` }"
-        />
-        <view
-          v-for="n in 8"
-          :key="`v-${n}`"
-          style="position: absolute; width: 1px; height: 100%; background: #81c784;"
-          :style="{ left: `${n * 12.5}%` }"
-        />
-      </view>
-
-      <!-- 田地标记 -->
-      <view
-        v-for="marker in h5Markers"
-        :key="marker.field.id"
-        style="position: absolute; display: flex; flex-direction: column; align-items: center; cursor: pointer; transform: translate(-50%, -100%); z-index: 10;"
-        :style="{ left: marker.left, top: marker.top }"
-        @click="onFieldTap(marker.field)"
-      >
-        <view
-          style="width: 32px; height: 32px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: 2px solid white;"
-          :style="{ backgroundColor: statusColor(marker.field.status) }"
-        >
-          {{ marker.field.name.charAt(0) }}
-        </view>
-        <view
-          style="margin-top: 4px; background: white; padding: 3px 8px; border-radius: 6px; font-size: 11px; color: #14532D; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.1); white-space: nowrap;"
-        >
-          {{ marker.field.name }}
-        </view>
-      </view>
-
-      <view
-        style="position: absolute; bottom: 8px; left: 8px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 8px; font-size: 11px; color: var(--color-muted-foreground);"
-      >
-        地图加载失败，显示模拟地图
-      </view>
-    </view>
   </view>
   <!-- #endif -->
 
