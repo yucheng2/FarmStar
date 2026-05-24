@@ -32,6 +32,14 @@ describe('garden routes', () => {
     expect(response.json().items).toMatchObject([{ code: '田地001', status: 'idle' }])
   })
 
+  it('returns unsplash field cover image urls', async () => {
+    const { app } = createTestApp()
+    const response = await app.inject({ method: 'GET', url: '/api/fields/field-001' })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json().imageUrl).toContain('https://images.unsplash.com/')
+  })
+
   it('returns recommended caretakers sorted by distance', async () => {
     const { app } = createTestApp()
     const response = await app.inject({ method: 'GET', url: '/api/fields/field-001/recommended-caretakers' })
@@ -311,5 +319,46 @@ describe('garden routes', () => {
 
     expect(secondPayResponse.statusCode).toBe(400)
     expect(secondPayResponse.json()).toMatchObject({ message: '该认养已支付' })
+  })
+
+  it('returns monitoring detail for adopted field', async () => {
+    const { app } = createTestApp()
+    const response = await app.inject({ method: 'GET', url: '/api/fields/field-002/monitoring' })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      field: { id: 'field-002', name: '我的小菜园', status: 'adopted' },
+      caretaker: { id: 'caretaker-li', name: '李伯' },
+      monitoringStatus: 'snapshot',
+      cameraStatus: 'not_installed',
+      latestSnapshotUrl: expect.stringContaining('https://images.unsplash.com/'),
+      careLogs: [
+        expect.objectContaining({ action: '浇水', caretakerName: '李伯' }),
+        expect.objectContaining({ action: '除草', caretakerName: '李伯' })
+      ]
+    })
+    expect(response.json().media[0]).toMatchObject({ type: 'image', caption: '清晨巡田照片，西红柿长势稳定' })
+  })
+
+  it('returns unavailable monitoring detail for field without updates', async () => {
+    const { app } = createTestApp()
+    const response = await app.inject({ method: 'GET', url: '/api/fields/field-001/monitoring' })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      field: { id: 'field-001', status: 'idle' },
+      monitoringStatus: 'unavailable',
+      cameraStatus: 'not_installed',
+      media: [],
+      careLogs: []
+    })
+  })
+
+  it('returns not found for missing field monitoring detail', async () => {
+    const { app } = createTestApp()
+    const response = await app.inject({ method: 'GET', url: '/api/fields/missing-field/monitoring' })
+
+    expect(response.statusCode).toBe(404)
+    expect(response.json()).toMatchObject({ message: '田地不存在' })
   })
 })

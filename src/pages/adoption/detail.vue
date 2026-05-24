@@ -81,6 +81,11 @@ function goToPayment() {
   }, 300)
 }
 
+function viewFieldMonitoring() {
+  if (!field.value) return
+  uni.navigateTo({ url: `/pages/field-monitoring/index?field_id=${field.value.id}` })
+}
+
 onMounted(() => {
   trackEvent({ event: 'page_view', userId: 'user-demo', pageName: 'adoption_detail' })
   void loadDetail()
@@ -184,12 +189,18 @@ onMounted(() => {
         <button data-test="go-payment" class="btn-primary w-full h-11" @click="goToPayment">
           去支付
         </button>
+        <button data-test="view-field-monitoring" class="btn-secondary w-full h-11" @click="viewFieldMonitoring">
+          查看田地监控
+        </button>
         <button data-test="return-garden" class="btn-secondary w-full h-11" @click="returnToGarden">
           返回田园
         </button>
       </view>
-      <view v-else style="margin-top: 4px;">
-        <button data-test="return-garden" class="btn-primary w-full h-11" @click="returnToGarden">
+      <view v-else style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+        <button data-test="view-field-monitoring" class="btn-primary w-full h-11" @click="viewFieldMonitoring">
+          查看田地监控
+        </button>
+        <button data-test="return-garden" class="btn-secondary w-full h-11" @click="returnToGarden">
           返回田园
         </button>
       </view>

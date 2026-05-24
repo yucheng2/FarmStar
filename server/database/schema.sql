@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS fields (
   name TEXT NOT NULL,
   area_square_meters INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'idle',
+  image_url TEXT,
   adoption_id TEXT,
   crop_id TEXT,
   crop_name TEXT,
@@ -48,6 +49,26 @@ CREATE TABLE IF NOT EXISTS adoptions (
   FOREIGN KEY (caretaker_id) REFERENCES caretakers(id)
 );
 
+CREATE TABLE IF NOT EXISTS field_monitoring_media (
+  id TEXT PRIMARY KEY,
+  field_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  url TEXT NOT NULL,
+  captured_at TEXT NOT NULL,
+  caption TEXT NOT NULL,
+  FOREIGN KEY (field_id) REFERENCES fields(id)
+);
+
+CREATE TABLE IF NOT EXISTS field_care_logs (
+  id TEXT PRIMARY KEY,
+  field_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  note TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  caretaker_name TEXT NOT NULL,
+  FOREIGN KEY (field_id) REFERENCES fields(id)
+);
+
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
@@ -59,4 +80,6 @@ CREATE INDEX IF NOT EXISTS idx_fields_status ON fields(status);
 CREATE INDEX IF NOT EXISTS idx_fields_caretaker ON fields(caretaker_id);
 CREATE INDEX IF NOT EXISTS idx_adoptions_user ON adoptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_adoptions_field ON adoptions(field_id);
+CREATE INDEX IF NOT EXISTS idx_monitoring_media_field ON field_monitoring_media(field_id);
+CREATE INDEX IF NOT EXISTS idx_care_logs_field ON field_care_logs(field_id);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);

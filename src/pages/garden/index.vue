@@ -79,6 +79,11 @@ function viewFieldAdoption() {
   uni.navigateTo({ url: `/pages/adoption/detail?adoption_id=${selectedField.value.adoptionId}` })
 }
 
+function viewFieldMonitoring() {
+  if (!selectedField.value) return
+  uni.navigateTo({ url: `/pages/field-monitoring/index?field_id=${selectedField.value.id}` })
+}
+
 function viewMyAdoptions() {
   uni.navigateTo({ url: '/pages/adoption/index' })
 }
@@ -192,28 +197,32 @@ onMounted(() => {
     <!-- Filter Row -->
     <view style="display: flex; align-items: center; gap: 8px; margin: 12px 16px 0; overflow-x: auto;">
       <button
-        :class="selectedStatus === 'idle' ? 'btn-secondary-active' : 'btn-secondary'"
+        class="btn-secondary"
+        :class="selectedStatus === 'idle' ? 'btn-secondary-active' : ''"
         style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
         @click="selectedStatus = 'idle'; loadFields()"
       >
         可认养
       </button>
       <button
-        :class="selectedStatus === '' ? 'btn-secondary-active' : 'btn-secondary'"
+        class="btn-secondary"
+        :class="selectedStatus === '' ? 'btn-secondary-active' : ''"
         style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
         @click="selectedStatus = ''; loadFields()"
       >
         全部田地
       </button>
       <button
-        :class="selectedStatus === 'adopted' ? 'btn-secondary-active' : 'btn-secondary'"
+        class="btn-secondary"
+        :class="selectedStatus === 'adopted' ? 'btn-secondary-active' : ''"
         style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
         @click="selectedStatus = 'adopted'; loadFields()"
       >
         已被认养
       </button>
       <button
-        :class="selectedStatus === 'ready_to_harvest' ? 'btn-secondary-active' : 'btn-secondary'"
+        class="btn-secondary"
+        :class="selectedStatus === 'ready_to_harvest' ? 'btn-secondary-active' : ''"
         style="height: 30px; padding: 0 14px; font-size: 13px; white-space: nowrap; flex-shrink: 0;"
         @click="selectedStatus = 'ready_to_harvest'; loadFields()"
       >
@@ -225,7 +234,8 @@ onMounted(() => {
     <view style="display: flex; align-items: center; gap: 8px; margin: 10px 16px 0;">
       <button
         data-test="list-tab"
-        :class="activeView === 'list' ? 'btn-secondary-active' : 'btn-secondary'"
+        class="btn-secondary"
+        :class="activeView === 'list' ? 'btn-secondary-active' : ''"
         style="flex: 1; height: 30px; padding: 0; font-size: 13px; display: flex; align-items: center; justify-content: center;"
         @click="selectView('list')"
       >
@@ -233,7 +243,8 @@ onMounted(() => {
       </button>
       <button
         data-test="map-tab"
-        :class="activeView === 'map' ? 'btn-secondary-active' : 'btn-secondary'"
+        class="btn-secondary"
+        :class="activeView === 'map' ? 'btn-secondary-active' : ''"
         style="flex: 1; height: 30px; padding: 0; font-size: 13px; display: flex; align-items: center; justify-content: center;"
         @click="selectView('map')"
       >
@@ -322,6 +333,15 @@ onMounted(() => {
           @click="viewFieldAdoption"
         >
           查看认养状态
+        </button>
+        <button
+          v-if="selectedField.adoptionId"
+          data-test="view-field-monitoring"
+          class="btn-secondary"
+          style="height: 40px; margin-top: 8px;"
+          @click="viewFieldMonitoring"
+        >
+          查看田地监控
         </button>
       </view>
     </view>

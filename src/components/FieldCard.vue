@@ -46,30 +46,41 @@ function emitCaretaker() {
     class="card border border-border transition-shadow duration-200 hover:shadow-lg"
     data-test="field-card"
   >
-    <view class="flex flex-col gap-2">
-      <!-- Header -->
-      <view class="flex items-center justify-between">
-        <text class="text-foreground text-base font-bold">{{ field.name }}</text>
+    <view class="flex flex-col gap-2.5">
+      <image
+        v-if="field.imageUrl"
+        data-test="field-cover"
+        class="w-full rounded-xl bg-primary/10 object-cover"
+        style="height: 150px;"
+        mode="aspectFill"
+        :src="field.imageUrl"
+        :alt="field.name"
+        lazy-load
+      />
+
+      <view class="flex items-start justify-between gap-3">
+        <view class="flex flex-col gap-1 min-w-0">
+          <text class="text-foreground text-base font-bold leading-tight">{{ field.name }}</text>
+          <view class="flex items-center gap-2 text-muted-foreground text-xs">
+            <text>面积：{{ field.areaSquareMeters }}㎡</text>
+            <text
+              class="px-2 py-0.5 rounded-full text-white text-xs"
+              :class="statusColorMap[field.status]"
+            >
+              {{ statusText[field.status] }}
+            </text>
+          </view>
+        </view>
         <image
           v-if="field.caretaker"
-          class="w-20 h-20 rounded-lg bg-primary/10 object-cover cursor-pointer transition-transform duration-200 active:scale-95"
+          class="shrink-0 rounded-full bg-primary/10 object-cover cursor-pointer transition-transform duration-200 active:scale-95"
+          style="width: 36px; height: 36px;"
           data-test="caretaker-avatar"
           :src="field.caretaker.avatarUrl"
           :alt="field.caretaker.name"
           lazy-load
           @click.stop="emitCaretaker"
         />
-      </view>
-
-      <!-- Meta -->
-      <view class="flex items-center gap-3 text-muted-foreground text-xs">
-        <text>面积：{{ field.areaSquareMeters }}㎡</text>
-        <text
-          class="px-2 py-0.5 rounded-full text-white text-xs"
-          :class="statusColorMap[field.status]"
-        >
-          {{ statusText[field.status] }}
-        </text>
       </view>
 
       <!-- Crop Row -->

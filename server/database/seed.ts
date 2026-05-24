@@ -1,9 +1,80 @@
 import Database from 'better-sqlite3'
-import { caretakers, fields } from '../../src/mocks/gardenData'
+import { caretakers, careLogs, fields, monitoringMedia } from '../../src/mocks/gardenData'
+
+function syncImageAssets(db: Database.Database): void {
+  const updateCaretaker = db.prepare('UPDATE caretakers SET avatar_url = ?, real_photo_url = ? WHERE id = ?')
+  for (const caretaker of caretakers) {
+    updateCaretaker.run(caretaker.avatarUrl, caretaker.realPhotoUrl, caretaker.id)
+  }
+
+  const updateField = db.prepare('UPDATE fields SET image_url = ?, crop_icon_url = ? WHERE id = ?')
+  for (const field of fields) {
+    updateField.run(field.imageUrl ?? null, field.crop?.iconUrl ?? null, field.id)
+  }
+}
+
+function syncMonitoringData(db: Database.Database): void {
+  const insertMedia = db.prepare(`
+    INSERT OR REPLACE INTO field_monitoring_media (id, field_id, type, url, captured_at, caption)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `)
+
+  for (const media of monitoringMedia) {
+    const fieldId = media.id.replace(/^media-/, '').replace(/-\d+$/, '')
+    insertMedia.run(media.id, fieldId, media.type, media.url, media.capturedAt, media.caption)
+  }
+
+  const insertCareLog = db.prepare(`
+    INSERT OR REPLACE INTO field_care_logs (id, field_id, action, note, created_at, caretaker_name)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `)
+
+  for (const [fieldId, logs] of Object.entries(careLogs)) {
+    for (const log of logs) {
+      insertCareLog.run(log.id, fieldId, log.action, log.note, log.createdAt, log.caretakerName)
+    }
+  }
+}
 
 export function seedDatabase(db: Database.Database): void {
+  const fieldColumns = db.prepare('PRAGMA table_info(fields)').all() as { name: string }[]
+  if (!fieldColumns.some((column) => column.name === 'image_url')) {
+    db.prepare('ALTER TABLE fields ADD COLUMN image_url TEXT').run()
+  }
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS field_monitoring_media (
+      id TEXT PRIMARY KEY,
+      field_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      url TEXT NOT NULL,
+      captured_at TEXT NOT NULL,
+      caption TEXT NOT NULL,
+      FOREIGN KEY (field_id) REFERENCES fields(id)
+    )
+  `).run()
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS field_care_logs (
+      id TEXT PRIMARY KEY,
+      field_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      note TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      caretaker_name TEXT NOT NULL,
+      FOREIGN KEY (field_id) REFERENCES fields(id)
+    )
+  `).run()
+
+  db.prepare('CREATE INDEX IF NOT EXISTS idx_monitoring_media_field ON field_monitoring_media(field_id)').run()
+  db.prepare('CREATE INDEX IF NOT EXISTS idx_care_logs_field ON field_care_logs(field_id)').run()
+
   const caretakerCount = db.prepare('SELECT COUNT(*) as count FROM caretakers').get() as { count: number }
-  if (caretakerCount.count > 0) return
+  if (caretakerCount.count > 0) {
+    syncImageAssets(db)
+    syncMonitoringData(db)
+    return
+  }
 
   const insertCaretaker = db.prepare(`
     INSERT INTO caretakers (
@@ -24,15 +95,16 @@ export function seedDatabase(db: Database.Database): void {
 
   const insertField = db.prepare(`
     INSERT INTO fields (
-      id, code, name, area_square_meters, status, adoption_id,
+      id, code, name, area_square_meters, status, image_url, adoption_id,
       crop_id, crop_name, crop_icon_url, crop_progress_percent,
       expected_harvest_date, caretaker_id, location_latitude, location_longitude
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   for (const f of fields) {
     insertField.run(
       f.id, f.code, f.name, f.areaSquareMeters, f.status,
+      f.imageUrl ?? null,
       f.adoptionId ?? null,
       f.crop?.id ?? null, f.crop?.name ?? null, f.crop?.iconUrl ?? null,
       f.crop?.progressPercent ?? null,
@@ -61,4 +133,6 @@ export function seedDatabase(db: Database.Database): void {
       )
     }
   }
+
+  syncMonitoringData(db)
 }

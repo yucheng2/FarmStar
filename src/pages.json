@@ -37,6 +37,12 @@
       }
     },
     {
+      "path": "pages/field-monitoring/index",
+      "style": {
+        "navigationBarTitleText": "田地监控"
+      }
+    },
+    {
       "path": "pages/profile/index",
       "style": {
         "navigationBarTitleText": "个人中心"

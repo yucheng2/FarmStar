@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3'
 import type {
   Adoption,
   AdoptionListItem,
+  CareLog,
   Caretaker,
   CaretakerFilters,
   CreateAdoptionInput,
@@ -9,6 +10,8 @@ import type {
   ExperienceRange,
   Field,
   FieldFilters,
+  FieldMonitoringDetail,
+  MonitoringMedia,
   PaginatedResult,
   Specialty
 } from '../../src/types/garden'
@@ -58,6 +61,7 @@ function rowToField(row: Record<string, unknown>, caretaker?: Caretaker): Field 
     name: String(row.name),
     areaSquareMeters: Number(row.area_square_meters),
     status: String(row.status) as Field['status'],
+    imageUrl: row.image_url ? String(row.image_url) : undefined,
     adoptionId: row.adoption_id ? String(row.adoption_id) : undefined,
     caretaker: caretaker ? {
       id: caretaker.id,
@@ -91,6 +95,26 @@ function rowToField(row: Record<string, unknown>, caretaker?: Caretaker): Field 
   }
 
   return field
+}
+
+function rowToMonitoringMedia(row: Record<string, unknown>): MonitoringMedia {
+  return {
+    id: String(row.id),
+    type: String(row.type) as MonitoringMedia['type'],
+    url: String(row.url),
+    capturedAt: String(row.captured_at),
+    caption: String(row.caption)
+  }
+}
+
+function rowToCareLog(row: Record<string, unknown>): CareLog {
+  return {
+    id: String(row.id),
+    action: String(row.action),
+    note: String(row.note),
+    createdAt: String(row.created_at),
+    caretakerName: String(row.caretaker_name)
+  }
 }
 
 export function createGardenRepository(options: GardenRepositoryOptions) {
@@ -139,6 +163,29 @@ export function createGardenRepository(options: GardenRepositoryOptions) {
     if (!row) throw new Error('田地不存在')
     const caretaker = row.caretaker_id ? getCaretakerById(String(row.caretaker_id)) : undefined
     return rowToField(row, caretaker)
+  }
+
+  function getFieldMonitoring(fieldId: string): FieldMonitoringDetail {
+    const field = getFieldById(fieldId)
+    const mediaRows = db.prepare(`
+      SELECT * FROM field_monitoring_media WHERE field_id = ? ORDER BY captured_at DESC
+    `).all(fieldId) as Record<string, unknown>[]
+    const careLogRows = db.prepare(`
+      SELECT * FROM field_care_logs WHERE field_id = ? ORDER BY created_at DESC
+    `).all(fieldId) as Record<string, unknown>[]
+    const media = mediaRows.map(rowToMonitoringMedia)
+    const latestMedia = media[0]
+
+    return {
+      field,
+      caretaker: field.caretaker,
+      monitoringStatus: media.length > 0 ? 'snapshot' : 'unavailable',
+      cameraStatus: 'not_installed',
+      latestSnapshotUrl: latestMedia?.url,
+      latestSnapshotAt: latestMedia?.capturedAt,
+      media,
+      careLogs: careLogRows.map(rowToCareLog)
+    }
   }
 
   function getRecommendedCaretakers(fieldId: string): PaginatedResult<Caretaker> {
@@ -268,6 +315,7 @@ export function createGardenRepository(options: GardenRepositoryOptions) {
   return {
     getFields,
     getFieldById,
+    getFieldMonitoring,
     getRecommendedCaretakers,
     getCaretakers,
     getCaretakerById,

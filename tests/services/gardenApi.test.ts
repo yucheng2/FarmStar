@@ -4,6 +4,7 @@ import {
   getAdoptionById,
   getCaretakerById,
   getCaretakers,
+  getFieldMonitoring,
   getFields,
   getMyAdoptions,
   getRecommendedCaretakers
@@ -115,6 +116,20 @@ describe('gardenApi', () => {
       body: undefined
     })
     expect(adoption.id).toBe('adoption-field-001-caretaker-zhang')
+  })
+
+  it('requests field monitoring detail by field id', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ field: { id: 'field-002' }, monitoringStatus: 'snapshot', media: [], careLogs: [] }) })
+
+    const monitoring = await getFieldMonitoring('field-002')
+
+    expect(fetchMock).toHaveBeenCalledWith('http://127.0.0.1:3000/api/fields/field-002/monitoring', {
+      method: 'GET',
+      headers: { Authorization: 'Bearer test-token' },
+      body: undefined
+    })
+    expect(monitoring.field.id).toBe('field-002')
+    expect(monitoring.monitoringStatus).toBe('snapshot')
   })
 
   it('throws backend error message', async () => {

@@ -58,6 +58,19 @@ describe('GardenPage', () => {
     vi.useRealTimers()
   })
 
+  it('keeps filter chips rounded in active and inactive states', async () => {
+    const wrapper = mount(GardenPage)
+    await flushPromises()
+
+    const allFieldsChip = wrapper.findAll('button').find((button) => button.text() === '全部田地')
+    const idleChip = wrapper.findAll('button').find((button) => button.text() === '可认养')
+
+    expect(allFieldsChip?.classes()).toContain('btn-secondary')
+    expect(allFieldsChip?.classes()).toContain('btn-secondary-active')
+    expect(idleChip?.classes()).toContain('btn-secondary')
+    expect(idleChip?.classes()).not.toContain('btn-secondary-active')
+  })
+
   it('shows map view with field markers', async () => {
     const wrapper = mount(GardenPage)
     await flushPromises()
@@ -111,6 +124,18 @@ describe('GardenPage', () => {
     await wrapper.get('[data-test="view-field-adoption"]').trigger('click')
 
     expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/adoption/detail?adoption_id=adoption-field-002-caretaker-li' })
+  })
+
+  it('opens field monitoring from adopted field detail', async () => {
+    const wrapper = mount(GardenPage)
+    await flushPromises()
+
+    await wrapper.findAll('button').find((button) => button.text() === '已被认养')?.trigger('click')
+    await flushPromises()
+    await wrapper.findAll('[data-test="field-action"]')[0].trigger('click')
+    await wrapper.get('[data-test="view-field-monitoring"]').trigger('click')
+
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/field-monitoring/index?field_id=field-002' })
   })
 
   it('closes adopted field detail', async () => {

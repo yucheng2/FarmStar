@@ -46,6 +46,26 @@ describe('AdoptionDetailPage', () => {
     expect(wrapper.text()).toContain('payment-field-002-caretaker-li')
   })
 
+  it('opens field monitoring from adoption detail', async () => {
+    vi.mocked(getAdoptionById).mockResolvedValueOnce({
+      id: 'adoption-field-002-caretaker-li',
+      userId: 'user-demo',
+      fieldId: 'field-002',
+      caretakerId: 'caretaker-li',
+      status: 'active',
+      paymentOrderId: 'payment-field-002-caretaker-li',
+      createdAt: '2026-05-23T10:00:00+08:00'
+    })
+    vi.mocked(getFieldById).mockResolvedValueOnce(fields[1])
+    vi.mocked(getCaretakerById).mockResolvedValueOnce(caretakers[1])
+
+    const wrapper = mount(AdoptionDetailPage, { props: { adoptionId: 'adoption-field-002-caretaker-li' } })
+    await flushPromises()
+    await wrapper.get('[data-test="view-field-monitoring"]').trigger('click')
+
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/field-monitoring/index?field_id=field-002' })
+  })
+
   it('accepts adoption_id prop', async () => {
     vi.mocked(getAdoptionById).mockResolvedValueOnce({
       id: 'adoption-field-002-caretaker-li',

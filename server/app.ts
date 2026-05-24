@@ -76,6 +76,14 @@ export function createApp(gardenRepo?: GardenRepository, userRepo?: UserReposito
     }
   })
 
+  app.get<{ Params: { fieldId: string } }>('/api/fields/:fieldId/monitoring', async (request, reply) => {
+    try {
+      return gRepo!.getFieldMonitoring(request.params.fieldId)
+    } catch (caughtError) {
+      sendError(reply, caughtError, 404)
+    }
+  })
+
   app.get<{ Params: { fieldId: string } }>('/api/fields/:fieldId/recommended-caretakers', async (request, reply) => {
     try {
       return gRepo!.getRecommendedCaretakers(request.params.fieldId)

@@ -1,4 +1,4 @@
-import type { Caretaker, Field } from '../types/garden'
+import type { CareLog, Caretaker, Field, FieldMonitoringDetail, MonitoringMedia } from '../types/garden'
 
 export const caretakers: Caretaker[] = [
   {
@@ -138,6 +138,7 @@ export const fields: Field[] = [
     name: '青禾村东头菜地',
     areaSquareMeters: 10,
     status: 'idle',
+    imageUrl: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&h=480&fit=crop',
     expectedHarvestDate: undefined,
     caretaker: caretakers[0],
     location: { latitude: 39.914, longitude: 116.407 }
@@ -148,6 +149,7 @@ export const fields: Field[] = [
     name: '我的小菜园',
     areaSquareMeters: 20,
     status: 'adopted',
+    imageUrl: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=800&h=480&fit=crop',
     adoptionId: 'adoption-field-002-caretaker-li',
     crop: {
       id: 'crop-tomato',
@@ -165,6 +167,7 @@ export const fields: Field[] = [
     name: '南坡玉米田',
     areaSquareMeters: 30,
     status: 'ready_to_harvest',
+    imageUrl: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800&h=480&fit=crop',
     crop: {
       id: 'crop-corn',
       name: '玉米',
@@ -181,6 +184,7 @@ export const fields: Field[] = [
     name: '东篱村果园',
     areaSquareMeters: 15,
     status: 'maintenance',
+    imageUrl: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=800&h=480&fit=crop',
     expectedHarvestDate: undefined,
     caretaker: caretakers[3],
     location: { latitude: 39.916, longitude: 116.403 }
@@ -191,6 +195,7 @@ export const fields: Field[] = [
     name: '西河蔬菜大棚',
     areaSquareMeters: 25,
     status: 'idle',
+    imageUrl: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&h=480&fit=crop',
     expectedHarvestDate: undefined,
     caretaker: caretakers[5],
     location: { latitude: 39.913, longitude: 116.401 }
@@ -201,6 +206,7 @@ export const fields: Field[] = [
     name: '北山苹果园',
     areaSquareMeters: 40,
     status: 'adopted',
+    imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800&h=480&fit=crop',
     adoptionId: 'adoption-field-006-caretaker-wu',
     crop: {
       id: 'crop-apple',
@@ -218,6 +224,7 @@ export const fields: Field[] = [
     name: '周婶的有机菜园',
     areaSquareMeters: 18,
     status: 'idle',
+    imageUrl: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?w=800&h=480&fit=crop',
     expectedHarvestDate: undefined,
     caretaker: caretakers[7],
     location: { latitude: 39.915, longitude: 116.406 }
@@ -228,6 +235,7 @@ export const fields: Field[] = [
     name: '青禾村水稻田',
     areaSquareMeters: 50,
     status: 'adopted',
+    imageUrl: 'https://images.unsplash.com/photo-1536617621572-1d5f1e6269a0?w=800&h=480&fit=crop',
     adoptionId: 'adoption-field-008-caretaker-zhang',
     crop: {
       id: 'crop-rice',
@@ -245,6 +253,7 @@ export const fields: Field[] = [
     name: '南坡南瓜地',
     areaSquareMeters: 22,
     status: 'ready_to_harvest',
+    imageUrl: 'https://images.unsplash.com/photo-1570586437263-162f27db78a5?w=800&h=480&fit=crop',
     crop: {
       id: 'crop-pumpkin',
       name: '南瓜',
@@ -261,8 +270,98 @@ export const fields: Field[] = [
     name: '东篱村草莓园',
     areaSquareMeters: 12,
     status: 'idle',
+    imageUrl: 'https://images.unsplash.com/photo-1461354464878-ad92f492a5a0?w=800&h=480&fit=crop',
     expectedHarvestDate: undefined,
     caretaker: caretakers[3],
     location: { latitude: 39.917, longitude: 116.402 }
   }
 ]
+
+export const monitoringMedia: MonitoringMedia[] = [
+  {
+    id: 'media-field-002-001',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=800&h=480&fit=crop',
+    capturedAt: '2026-05-24T08:30:00+08:00',
+    caption: '清晨巡田照片，西红柿长势稳定'
+  },
+  {
+    id: 'media-field-002-002',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&h=480&fit=crop',
+    capturedAt: '2026-05-23T17:20:00+08:00',
+    caption: '傍晚补水后拍摄'
+  },
+  {
+    id: 'media-field-006-001',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800&h=480&fit=crop',
+    capturedAt: '2026-05-24T09:10:00+08:00',
+    caption: '苹果幼果检查完成'
+  },
+  {
+    id: 'media-field-008-001',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1536617621572-1d5f1e6269a0?w=800&h=480&fit=crop',
+    capturedAt: '2026-05-24T07:50:00+08:00',
+    caption: '水稻田水位正常'
+  }
+]
+
+export const careLogs: Record<string, CareLog[]> = {
+  'field-002': [
+    {
+      id: 'care-log-field-002-001',
+      action: '浇水',
+      note: '今日上午完成滴灌补水，土壤湿度正常。',
+      createdAt: '2026-05-24T09:00:00+08:00',
+      caretakerName: '李伯'
+    },
+    {
+      id: 'care-log-field-002-002',
+      action: '除草',
+      note: '已清理田垄边杂草，避免影响西红柿生长。',
+      createdAt: '2026-05-23T16:40:00+08:00',
+      caretakerName: '李伯'
+    }
+  ],
+  'field-006': [
+    {
+      id: 'care-log-field-006-001',
+      action: '巡检',
+      note: '检查苹果幼果和枝叶，暂未发现病虫害。',
+      createdAt: '2026-05-24T09:20:00+08:00',
+      caretakerName: '吴伯'
+    }
+  ],
+  'field-008': [
+    {
+      id: 'care-log-field-008-001',
+      action: '水位检查',
+      note: '水稻田水位保持稳定，今日无需额外补水。',
+      createdAt: '2026-05-24T08:05:00+08:00',
+      caretakerName: '张叔'
+    }
+  ]
+}
+
+export const fieldMonitoringDetails: Record<string, FieldMonitoringDetail> = Object.fromEntries(
+  fields.map((field) => {
+    const media = monitoringMedia.filter((item) => item.id.includes(field.id))
+    const latestMedia = media[0]
+
+    return [
+      field.id,
+      {
+        field,
+        caretaker: field.caretaker,
+        monitoringStatus: media.length > 0 ? 'snapshot' : 'unavailable',
+        cameraStatus: 'not_installed',
+        latestSnapshotUrl: latestMedia?.url,
+        latestSnapshotAt: latestMedia?.capturedAt,
+        media,
+        careLogs: careLogs[field.id] ?? []
+      }
+    ]
+  })
+)

@@ -8,6 +8,7 @@ import type {
   CreateAdoptionResult,
   Field,
   FieldFilters,
+  FieldMonitoringDetail,
   PaginatedResult
 } from '../types/garden'
 
@@ -94,6 +95,10 @@ export async function getFields(filters: FieldFilters = {}, skipCache?: boolean)
 
 export async function getFieldById(fieldId: string): Promise<Field> {
   return request(`/api/fields/${fieldId}`)
+}
+
+export async function getFieldMonitoring(fieldId: string): Promise<FieldMonitoringDetail> {
+  return request(`/api/fields/${fieldId}/monitoring`)
 }
 
 export async function getRecommendedCaretakers(fieldId: string): Promise<PaginatedResult<Caretaker>> {
