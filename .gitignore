@@ -20,3 +20,9 @@ pnpm-debug.log*
 .DS_Store
 .idea/
 .vscode/
+.playwright-cli/
+server/database/data/
+server/database/*.db
+server/database/*.db-shm
+server/database/*.db-wal
+
