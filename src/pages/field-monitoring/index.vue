@@ -49,12 +49,6 @@ onMounted(() => {
 
 <template>
   <view class="min-h-dvh bg-background pb-6">
-    <view style="display: flex; align-items: center; justify-content: space-between; margin: 0 16px; padding: 14px 0;">
-      <view class="text-primary text-sm" style="width: 60px;" @click="returnToGarden">←</view>
-      <view class="text-foreground text-lg font-bold">田地监控</view>
-      <view style="width: 60px;" />
-    </view>
-
     <view v-if="loading" style="margin: 40px 16px; text-align: center; color: var(--color-muted-foreground);">
       加载中...
     </view>

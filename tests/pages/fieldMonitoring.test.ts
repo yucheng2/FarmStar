@@ -37,6 +37,15 @@ describe('FieldMonitoringPage', () => {
     expect(wrapper.text()).toContain('今日上午完成滴灌补水，土壤湿度正常。')
   })
 
+  it('does not render an in-page navigation header', async () => {
+    vi.mocked(getFieldMonitoring).mockResolvedValueOnce(fieldMonitoringDetails['field-002'])
+
+    const wrapper = mount(FieldMonitoringPage, { props: { fieldId: 'field-002' } })
+    await flushPromises()
+
+    expect(wrapper.findAll('view').some((node) => node.text() === '←田地监控')).toBe(false)
+  })
+
   it('accepts field_id prop', async () => {
     vi.mocked(getFieldMonitoring).mockResolvedValueOnce(fieldMonitoringDetails['field-002'])
 

@@ -98,13 +98,6 @@ onMounted(() => {
     @mark-read="markAsRead"
   />
   <view class="min-h-dvh bg-background pb-6">
-    <!-- Header -->
-    <view style="display: flex; align-items: center; justify-content: space-between; margin: 0 16px; padding: 14px 0;">
-      <view class="text-primary text-sm" style="width: 60px;" @click="uni.navigateBack()">←</view>
-      <view class="text-foreground text-lg font-bold">个人中心</view>
-      <view style="width: 60px;" />
-    </view>
-
     <!-- Not logged in -->
     <view v-if="!isLoggedIn()" class="card" style="margin: 16px;">
       <view class="text-foreground text-lg font-bold">未登录</view>

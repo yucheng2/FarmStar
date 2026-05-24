@@ -152,31 +152,8 @@ onMounted(() => {
     @mark-read="markAsRead"
   />
   <view class="min-h-dvh bg-background pb-6">
-    <!-- Navigation -->
-    <view style="display: flex; align-items: center; justify-content: space-between; margin: 0 16px; padding: 14px 0;">
-      <view class="text-primary text-sm" style="width: 60px;">←</view>
-      <view class="text-foreground text-lg font-bold">我的田园</view>
-      <view
-        v-if="isLoggedIn()"
-        data-test="profile-entry"
-        class="text-primary text-sm"
-        style="width: 60px; text-align: right;"
-        @click="viewProfile"
-      >
-        我的
-      </view>
-      <view
-        v-else
-        class="text-primary text-sm"
-        style="width: 60px; text-align: right;"
-        @click="goToLogin"
-      >
-        登录
-      </view>
-    </view>
-
     <!-- Search Row -->
-    <view style="display: flex; align-items: center; gap: 8px; margin: 0 16px;">
+    <view style="display: flex; align-items: center; gap: 8px; margin: 16px 16px 0;">
       <input
         v-model="keyword"
         data-test="search-input"
@@ -191,6 +168,23 @@ onMounted(() => {
         @click="() => { if (searchTimeout) clearTimeout(searchTimeout); loadFields() }"
       >
         搜索
+      </button>
+      <button
+        v-if="isLoggedIn()"
+        data-test="profile-entry"
+        class="btn-secondary"
+        style="width: 56px; height: 36px; padding: 0; font-size: 14px; border-radius: 18px; flex-shrink: 0;"
+        @click="viewProfile"
+      >
+        我的
+      </button>
+      <button
+        v-else
+        class="btn-secondary"
+        style="width: 56px; height: 36px; padding: 0; font-size: 14px; border-radius: 18px; flex-shrink: 0;"
+        @click="goToLogin"
+      >
+        登录
       </button>
     </view>
 

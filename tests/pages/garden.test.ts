@@ -38,10 +38,17 @@ describe('GardenPage', () => {
     await flushPromises()
 
     expect(getFields).toHaveBeenCalledWith({})
-    expect(wrapper.text()).toContain('我的田园')
+    expect(wrapper.get('[data-test="search-input"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('青禾村东头菜地')
     expect(wrapper.text()).toContain('我的小菜园')
     expect(getAnalyticsEvents()[0]).toMatchObject({ event: 'page_view', pageName: 'garden' })
+  })
+
+  it('does not render an in-page navigation header', async () => {
+    const wrapper = mount(GardenPage)
+    await flushPromises()
+
+    expect(wrapper.findAll('view').some((node) => node.text().startsWith('←我的田园'))).toBe(false)
   })
 
   it('filters by keyword', async () => {
