@@ -21,6 +21,11 @@ pnpm-debug.log*
 .idea/
 .vscode/
 .playwright-cli/
+# 已分离的项目
+garden-web/
+garden-server/
+
+# Server database (分离到 garden-server)
 server/database/data/
 server/database/*.db
 server/database/*.db-shm
