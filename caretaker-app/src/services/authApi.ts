@@ -1,3 +1,5 @@
+import { uni } from '../utils/uni-mock'
+
 const CARETAKER_TOKEN_KEY = 'caretaker_token'
 const CARETAKER_INFO_KEY = 'caretaker_info'
 
