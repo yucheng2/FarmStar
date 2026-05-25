@@ -4,24 +4,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FarmStar is an agricultural management platform with two applications:
+FarmStar is an agricultural management platform organized as a multi-repo workspace:
 
-1. **caretaker-app/** - Primary Vue 3 H5 mobile app for caretakers (this is where active development happens)
-2. **Root directory** - Uni-app based application (legacy/secondary)
+1. **caretaker-app/** - Primary Vue 3 H5 mobile app for caretakers (active development)
+2. **garden-web/** - Uni-app based web application
+3. **garden-server/** - Node.js/Fastify backend API
 
 ## Development Commands
 
-### caretaker-app (main development target)
+### caretaker-app
 ```bash
 cd caretaker-app
-npm run dev        # Start dev server on port 5174
-npm test           # Run tests with Vitest
+npm install
+npm run dev        # Dev server on port 5173
+npm run build      # Production build
+npm test           # Run Vitest tests
 ```
 
-### Root directory
+### garden-web
 ```bash
-npm run dev:h5     # Start uni-app H5 dev server
-npm test           # Run tests
+cd garden-web
+npm install
+npm run dev:h5     # H5 dev server
+npm run build:h5   # H5 production build
+npm test           # Run Vitest tests
+```
+
+### garden-server
+```bash
+cd garden-server
+npm install
+npm run dev        # Starts Fastify server on port 3000
 ```
 
 ## Architecture
@@ -90,6 +103,9 @@ Example structure:
 
 ### Mock Data
 Mock data lives in `src/mocks/gardenData.ts`. Services in `src/services/` use this data with simulated network delay (300ms).
+
+### CSS Global Scope Issue
+Vue `<style>` without `scoped` is global. Multiple imported page components share CSS scope. Use unique class names per page (e.g., `.home-header`, `.map-header`) or add `<style scoped>` to avoid conflicts.
 
 ## Theme Colors (CSS Variables)
 ```css
