@@ -25,6 +25,18 @@
       "style": { "navigationBarTitleText": "扫码" }
     },
     {
+      "path": "pages/caretaker-stats/index",
+      "style": { "navigationBarTitleText": "养护统计" }
+    },
+    {
+      "path": "pages/caretaker-settings/index",
+      "style": { "navigationBarTitleText": "设置" }
+    },
+    {
+      "path": "pages/caretaker-help/index",
+      "style": { "navigationBarTitleText": "帮助与反馈" }
+    },
+    {
       "path": "pages/caretaker-profile/index",
       "style": { "navigationBarTitleText": "个人中心" }
     }
