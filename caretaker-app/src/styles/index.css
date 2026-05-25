@@ -1,20 +1,4 @@
-@import "tailwindcss";
-
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-@theme {
-  --color-primary: #15803D;
-  --color-primary-foreground: #FFFFFF;
-  --color-secondary: #22C55E;
-  --color-background: #F0FDF4;
-  --color-foreground: #14532D;
-  --color-card: #FFFFFF;
-  --color-card-foreground: #2D3A2D;
-  --color-muted: #6B766B;
-  --color-muted-foreground: #6B766B;
-  --color-border: #BBF7D0;
-  --color-accent: #A16207;
-}
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

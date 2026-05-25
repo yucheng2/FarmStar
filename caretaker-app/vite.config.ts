@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import tailwindcss from '@tailwindcss/vite'
+import UnoCSS from '@unocss/vite'
 
 // Custom plugin to transform uni-app custom elements to native HTML
 function uniAppTransform() {
@@ -35,7 +35,7 @@ function uniAppTransform() {
 }
 
 export default defineConfig({
-  plugins: [tailwindcss(), vue(), uniAppTransform()],
+  plugins: [uniAppTransform(), vue(), UnoCSS()],
   server: {
     port: 5174
   },
