@@ -21,13 +21,10 @@ pnpm-debug.log*
 .idea/
 .vscode/
 .playwright-cli/
-# 已分离的项目
-garden-web/
-garden-server/
 
-# Server database (分离到 garden-server)
-server/database/data/
-server/database/*.db
-server/database/*.db-shm
-server/database/*.db-wal
+# garden-web and garden-server have their own git repos
+garden-web/node_modules/
+garden-web/dist/
+garden-web/unpackage/
+garden-server/node_modules/
 
