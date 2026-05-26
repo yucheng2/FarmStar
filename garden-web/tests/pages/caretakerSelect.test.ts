@@ -1,0 +1,120 @@
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import CaretakerSelectPage from '../../src/pages/caretaker-select/index.vue'
+import { caretakers } from '../../src/mocks/gardenData'
+import { clearAnalyticsEvents, getAnalyticsEvents } from '../../src/services/analytics'
+import { createAdoption, getCaretakers, getRecommendedCaretakers } from '../../src/services/gardenApi'
+
+vi.mock('../../src/services/gardenApi', () => ({
+  createAdoption: vi.fn(),
+  getCaretakers: vi.fn(),
+  getRecommendedCaretakers: vi.fn()
+}))
+
+describe('CaretakerSelectPage', () => {
+  beforeEach(() => {
+    clearAnalyticsEvents()
+    vi.mocked(uni.navigateTo).mockClear()
+    vi.mocked(uni.showToast).mockClear()
+    vi.mocked(createAdoption).mockReset()
+    vi.mocked(getCaretakers).mockReset()
+    vi.mocked(getRecommendedCaretakers).mockReset()
+    vi.mocked(getRecommendedCaretakers).mockResolvedValue({ items: caretakers.slice(0, 3), pagination: {} })
+    vi.mocked(getCaretakers).mockResolvedValue({ items: caretakers, pagination: {} })
+    vi.mocked(createAdoption).mockResolvedValue({
+      adoptionId: 'adoption-field-001-caretaker-zhang',
+      status: 'pending_payment',
+      paymentOrderId: 'payment-field-001-caretaker-zhang',
+      nextUrl: '/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang'
+    })
+  })
+
+  it('loads recommended and all caretakers', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('系统推荐（3公里内）')
+    expect(wrapper.text()).toContain('全部管护员')
+    expect(wrapper.text()).toContain('张叔')
+    expect(wrapper.text()).toContain('李伯')
+  })
+
+  it('selects caretaker and tracks event', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('.caretaker-card')[0].trigger('click')
+
+    expect(wrapper.text()).toContain('已选择：张叔')
+    expect(getAnalyticsEvents()[0]).toMatchObject({ event: 'caretaker_select', caretakerId: 'caretaker-zhang', fieldId: 'field-001' })
+  })
+
+  it('keeps confirm disabled until caretaker is selected', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    expect(wrapper.get('[data-test="confirm-selection"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('creates adoption and navigates to payment confirmation', async () => {
+    vi.useFakeTimers()
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('.caretaker-card')[0].trigger('click')
+    await wrapper.get('[data-test="confirm-selection"]').trigger('click')
+    await flushPromises()
+    await vi.advanceTimersByTimeAsync(1000)
+
+    expect(createAdoption).toHaveBeenCalledWith({ fieldId: 'field-001', caretakerId: 'caretaker-zhang' })
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/payment/confirm?adoption_id=adoption-field-001-caretaker-zhang' })
+    vi.useRealTimers()
+  })
+
+  it('shows error when createAdoption fails', async () => {
+    vi.mocked(createAdoption).mockRejectedValueOnce(new Error('该田地已被认养'))
+
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('.caretaker-card')[0].trigger('click')
+    await wrapper.get('[data-test="confirm-selection"]').trigger('click')
+    await flushPromises()
+
+    expect(uni.showToast).toHaveBeenCalledWith({ title: '该田地已被认养', icon: 'none' })
+  })
+
+  it('shows detail modal and tracks view event', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('[data-test="caretaker-detail"]')[0].trigger('click')
+
+    expect(wrapper.text()).toContain('张叔')
+    expect(wrapper.text()).toContain('18年管护经验')
+    expect(getAnalyticsEvents().map((event) => event.event)).toContain('caretaker_detail_view')
+  })
+
+  it('navigates to garden with caretaker name when clicking responsible fields', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('[data-test="caretaker-detail"]')[0].trigger('click')
+    await wrapper.get('[data-test="responsible-fields"]').trigger('click')
+
+    expect(uni.navigateTo).toHaveBeenCalledWith({ url: '/pages/garden/index?keyword=%E5%BC%A0%E5%8F%94' })
+  })
+
+  it('shows contact info when clicking contact caretaker', async () => {
+    const wrapper = mount(CaretakerSelectPage, { props: { fieldId: 'field-001' } })
+    await flushPromises()
+
+    await wrapper.findAll('[data-test="caretaker-detail"]')[0].trigger('click')
+    await wrapper.get('[data-test="contact-caretaker"]').trigger('click')
+
+    expect(wrapper.text()).toContain('联系管护员')
+    expect(wrapper.text()).toContain('张叔')
+    expect(wrapper.text()).toContain('13812340001')
+    expect(wrapper.get('[data-test="contact-modal"]').exists()).toBe(true)
+  })
+})
