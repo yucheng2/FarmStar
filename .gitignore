@@ -22,6 +22,9 @@ pnpm-debug.log*
 .vscode/
 .playwright-cli/
 
+garden-web/
+garden-server/
+
 garden-web/node_modules/
 garden-web/dist/
 garden-web/unpackage/
