@@ -22,7 +22,6 @@ pnpm-debug.log*
 .vscode/
 .playwright-cli/
 
-# garden-web and garden-server have their own git repos
 garden-web/node_modules/
 garden-web/dist/
 garden-web/unpackage/
