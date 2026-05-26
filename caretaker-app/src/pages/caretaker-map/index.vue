@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import BottomNav from '../../components/BottomNav.vue'
 import FieldInfoCard from '../../components/FieldInfoCard.vue'
+import FieldMapView from '../../components/FieldMapView.vue'
 import { getCareTakerInfo } from '../../services/authApi'
 import { getCaretakerFields } from '../../services/caretakerApi'
 import type { Field } from '../../types/garden'
@@ -49,13 +50,6 @@ function handleNav(tab: 'home' | 'map' | 'scan' | 'profile') {
     uni.switchTab({ url: '/pages/caretaker-profile/index' })
   }
 }
-
-// 状态颜色映射
-const statusColor: Record<string, string> = {
-  healthy: '#22C55E',
-  warning: '#F59E0B',
-  critical: '#EF4444'
-}
 </script>
 
 <template>
@@ -67,34 +61,8 @@ const statusColor: Record<string, string> = {
     </view>
 
     <!-- 地图区域 -->
-    <view class="map-area">
-      <!-- 模拟地图背景 -->
-      <view class="map-grid">
-        <!-- 网格线 -->
-        <view v-for="i in 5" :key="'h'+i" class="grid-line-h" :style="{ top: `${i * 20}%` }" />
-        <view v-for="i in 5" :key="'v'+i" class="grid-line-v" :style="{ left: `${i * 20}%` }" />
-      </view>
-
-      <!-- 田地标记 -->
-      <view class="markers-container">
-        <view
-          v-for="(field, index) in fields"
-          :key="field.id"
-          class="marker-item"
-          :style="{
-            left: `${20 + (index % 3) * 30}%`,
-            top: `${25 + Math.floor(index / 3) * 35}%`
-          }"
-          @click="handleFieldTap(field)"
-        >
-          <view class="marker-dot" :style="{ backgroundColor: statusColor[field.status] || '#22C55E' }">
-            <text class="marker-icon">🌱</text>
-          </view>
-          <view class="marker-label">
-            <text>{{ field.name }}</text>
-          </view>
-        </view>
-      </view>
+    <view class="map-section">
+      <FieldMapView :fields="fields" @marker-tap="handleFieldTap" />
     </view>
 
     <!-- 田地列表 -->
@@ -110,10 +78,15 @@ const statusColor: Record<string, string> = {
           class="field-card"
           @click="handleFieldTap(field)"
         >
-          <view class="field-status" :style="{ backgroundColor: statusColor[field.status] || '#22C55E' }" />
+          <view
+            class="field-status"
+            :style="{
+              backgroundColor: field.status === 'idle' ? '#22C55E' : field.status === 'adopted' ? '#15803D' : field.status === 'ready_to_harvest' ? '#A16207' : '#64748B'
+            }"
+          />
           <view class="field-info">
             <text class="field-name">{{ field.name }}</text>
-            <text class="field-area">{{ field.area }}亩</text>
+            <text class="field-area">{{ field.areaSquareMeters }}㎡</text>
           </view>
           <view class="field-arrow">
             <text>></text>
@@ -150,7 +123,6 @@ const statusColor: Record<string, string> = {
 </template>
 
 <style>
-/* 页面容器 */
 .page-container {
   display: flex;
   flex-direction: column;
@@ -159,7 +131,6 @@ const statusColor: Record<string, string> = {
   padding-bottom: 80px;
 }
 
-/* 头部 */
 .header {
   display: flex;
   flex-direction: column;
@@ -180,79 +151,14 @@ const statusColor: Record<string, string> = {
   margin-top: 4px;
 }
 
-/* 地图区域 */
-.map-area {
-  position: relative;
-  height: 240px;
-  background: linear-gradient(to bottom, #dcfce7, #bbf7d0);
-  overflow: hidden;
+.map-section {
+  margin: 16px;
 }
 
-.map-grid {
-  position: absolute;
-  inset: 0;
-}
-
-.grid-line-h {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #166534;
-  opacity: 0.15;
-}
-
-.grid-line-v {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background-color: #166534;
-  opacity: 0.15;
-}
-
-.markers-container {
-  position: absolute;
-  inset: 0;
-}
-
-.marker-item {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform: translate(-50%, -50%);
-}
-
-.marker-dot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.marker-icon {
-  font-size: 20px;
-}
-
-.marker-label {
-  margin-top: 8px;
-  padding: 4px 8px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  font-size: 12px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-/* 田地列表 */
 .field-list {
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 0 16px 16px;
   flex: 1;
 }
 
@@ -319,7 +225,6 @@ const statusColor: Record<string, string> = {
   color: var(--color-muted-foreground, #6B766B);
 }
 
-/* 详情弹窗 */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -375,7 +280,6 @@ const statusColor: Record<string, string> = {
   cursor: pointer;
 }
 
-/* 加载状态 */
 .loading {
   position: fixed;
   inset: 0;

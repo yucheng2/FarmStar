@@ -93,14 +93,15 @@ export default defineConfig({
     // Colors
     'text-primary', 'text-secondary', 'text-foreground', 'text-muted', 'text-muted-foreground',
     'text-accent', 'text-destructive', 'text-white',
-    'bg-primary', 'bg-secondary', 'bg-background', 'bg-card', 'bg-muted', 'bg-accent', 'bg-destructive',
+    'bg-primary', 'bg-secondary', 'bg-background', 'bg-card', 'bg-muted', 'bg-accent', 'bg-destructive', 'bg-transparent',
     'bg-opacity-10',
     // Visual
     'rounded-sm', 'rounded', 'rounded-md', 'rounded-lg', 'rounded-xl', 'rounded-2xl', 'rounded-full',
     'shadow-sm', 'shadow', 'shadow-md', 'shadow-lg', 'shadow-xl',
     // Sizing
-    'w-full', 'w-1/2', 'w-auto', 'h-full', 'h-11', 'h-12', 'h-auto',
+    'w-full', 'w-1/2', 'w-auto', 'h-full', 'h-11', 'h-12', 'h-16', 'h-auto',
     'min-h-dvh', 'min-h-screen', 'min-h-full',
+    'min-w-[64px]',
     'max-w-xs', 'max-w-md', 'max-w-lg', 'max-w-xl',
     // Position
     'absolute', 'relative', 'fixed', 'sticky',
@@ -114,7 +115,7 @@ export default defineConfig({
     'inset-0',
     // Border
     'border', 'border-0', 'border-2', 'border-b', 'border-t', 'border-l', 'border-r',
-    'border-border', 'border-primary',
+    'border-border', 'border-primary', 'border-none',
     // Effect
     'opacity-0', 'opacity-50', 'opacity-75', 'opacity-100',
     'cursor-pointer', 'select-none', 'pointer-events-none', 'transition-all',

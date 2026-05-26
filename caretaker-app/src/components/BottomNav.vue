@@ -21,7 +21,7 @@ const tabs = [
       <button
         v-for="tab in tabs"
         :key="tab.key"
-        class="flex flex-col items-center justify-center gap-1 p-2 min-w-[64px]"
+        class="flex flex-col items-center justify-center gap-1 p-2 min-w-[64px] border-none bg-transparent"
         :class="active === tab.key ? 'text-primary' : 'text-muted-foreground'"
         @click="emit('navigate', tab.key)"
       >
